@@ -1,0 +1,479 @@
+~~~0L-src/main/java/experiment/AdditionalCostsManager.java
+package main.java.experiment;
+
+public class AdditionalCostsManager {
+
+    /**
+     * Computes the shipping cost of an order. If the order weight is lower or equal 5, the shipping cost is 7 USD,
+     * if the weight is higher than 5 and lower or equal 18, the shipment cost is 10 USD, otherwise it is 20 USD.
+     * Then, the method charges an import fee based on the shipping costs of the order.
+     * If the order is shipped to a country other than the US, Canada, Mexico, and the United Kingdom,
+     * the shipping cost doubles.
+     * @param totalWeight - the weight of the order
+     * @param destinationAddress - the address to which the order must be shipped
+     * @return the total shipping costs
+     */
+    public double computeShippingCosts(double totalWeight, Customer.Address destinationAddress){
+        //TODO
+        return 0;
+    }
+}
+~~~~
+
+
+~~~1L-src/main/java/experiment/Customer.java
+package main.java.experiment;
+
+import java.time.*;
+
+public class Customer {
+
+    private String username;
+    private Address address;
+    private int membershipLevel;
+    private LocalDate registrationDate;
+
+    public Customer(String username, String address, int postalCode,
+                    String country, int membershipLevel, LocalDate registrationDate){
+        this.username = username;
+        this.address = new Address(address, postalCode, country);
+        this.membershipLevel = membershipLevel;
+	    this.registrationDate = registrationDate;
+    }
+
+    public int getMembershipLevel() {
+        return membershipLevel;
+    }
+
+    public Address getAddress(){ return address; }
+
+    /**
+     * Checks for how long a customer has been registered and updates their membership level accordingly.
+     * If a customer has been registered for at least 1 year its membership level is equivalent to the
+     * number of years since their registration.
+     * The highest level of membership is 10.
+     * @param membership - the current membership of a customer
+     * @return the updated membership level
+     */
+    private int updateMembership(int membership){
+        //TODO
+        return 0;
+    }
+
+    public class Address{
+
+        private String address;
+        private int postalCode;
+        private String country;
+
+        public Address(String address, int postalCode, String country){
+            this.address = address;
+            this.postalCode = postalCode;
+            this.country = country;
+        }
+
+        public String getCountry(){ return country; }
+    }
+}
+~~~~
+
+~~~2L-src/main/java/experiment/OnlineBasket.java
+package main.java.experiment;
+
+import java.util.*;
+
+public class OnlineBasket {
+
+    private List<Product> products;
+
+    public OnlineBasket(){
+        this.products = new ArrayList<>();
+    }
+
+    /**
+     * Adds a product to the basket
+     * @param product - the product to add to the basket
+     */
+    public void addToBasket(Product product){ products.add(product); }
+
+    /**
+     * Removes a product from the basket
+     * @param productId - the id of the product to remove
+     */
+    public void removeProductFromBasket(int productId){ products.remove(productId); }
+
+    /**
+     * Returns the list of products currently in the basket
+     * @return products in the basket
+     */
+    public List<Product> getProductsInBasket(){
+        return products;
+    }
+
+    /**
+     * Computes the shipping costs of the products in the basket
+     * @param destinationAddress - the address where the products are shipped
+     * @return the shipping costs of the products
+     */
+    public double finalizeOrder(Customer.Address destinationAddress) {
+        //TODO
+        return 0;
+    }
+
+    /**
+     * Computes the total weight of the products in the basket
+     * @return the total weight of the products in the order
+     */
+    private double computeBasketProductsWeight(){
+        double totalWeight = 0;
+        for(Product product : products.values()) {
+            totalWeight += product.getWeight();
+        }
+        return totalWeight;
+    }
+}
+~~~~
+
+~~~3L-src/main/java/experiment/Product.java
+package main.java.experiment;
+
+import java.time.*;
+
+public class Product {
+
+    private int id;
+    private String name;
+    private double price;
+    private double weight;
+    private boolean onSale;
+    private LocalDate expirationDate;
+
+    public Product(int id, String name, double price, double weight, boolean onSale, LocalDate expirationDate){
+        this.id = id;
+        this.name = name;
+        this.price = price;
+        this.weight = weight;
+        this.onSale = onSale;
+        this.expirationDate = expirationDate;
+    }
+
+    public int getId(){ return id; }
+
+    public double getPrice(){ return price; }
+
+    public double getWeight(){ return weight; }
+
+    public boolean isOnSale(){ return onSale; }
+
+    /**
+     * Applies a discount if the product is close to its expiration date.
+     * If the product expires in less than 7 days, a discount of 0.05 is applied
+     * for each day passed.
+     */
+    public void updateExpirationDiscount(){
+        //TODO
+    }
+}
+~~~~
+
+~~~4L-src/main/java/experiment/ReceiptCalculator.java
+package main.java.experiment;
+
+import java.util.*;
+
+public class ReceiptCalculator {
+
+    /**
+     * Returns the discount rate based on the membership level of the customer.
+     * Customers at level 1 do not receive any discount.
+     * Customers at level 2 to 4 receive a 10% discount.
+     * Customers from level 5 included receive a 25% discount.
+     * @param membershipLevel - the level of membership of the customer
+     * @return the discount rate applied to the customer
+     */
+    public double getSaleDiscountRate(int membershipLevel){
+        //TODO
+        return 0;
+    }
+
+    /**
+     * Computes the total cost of the products bought by a customer (including the shipping costs).
+     * If a product is on sale, a discount is applied.
+     * @param products - the list of products in the order
+     * @param membershipLevel - the level of membership of the customer
+     * @param shippingCosts - the shipping costs of the order
+     * @return the total cost of the products
+     */
+    public double computeTotalCost(List<Product> products, int membershipLevel, double shippingCosts) {
+        //TODO
+        return 0;
+    }
+}
+~~~~
+
+~~~0R-src/main/java/experiment/AdditionalCostsManager.java
+package main.java.experiment;
+
+public class AdditionalCostsManager {
+
+    /**
+     * Computes the shipping cost of an order. If the order weight is lower or equal 5, the shipping cost is 7 USD,
+     * if the weight is higher than 5 and lower or equal 18, the shipment cost is 10 USD, otherwise it is 20 USD.
+     * Then, the method charges an import fee based on the shipping costs of the order.
+     * If the order is shipped to a country other than the US, Canada, Mexico, and the United Kingdom,
+     * the shipping cost doubles.
+     * @param totalWeight - the weight of the order
+     * @param destinationAddress - the address to which the order must be shipped
+     * @return the total shipping costs
+     */
+    public double computeShippingCosts(double totalWeight, Customer.Address destinationAddress){
+        double shippingCost = 0;
+        if(totalWeight <= 5) {
+            shippingCost = 7;
+        }
+        if(totalWeight > 5 && totalWeight <= 18) {
+            shippingCost = 10;
+        }
+        if(totalWeight > 18) {
+            shippingCost = 20;
+        }
+        switch (destinationAddress.getCountry()) {
+            case "USA":
+                shippingCost = shippingCost * 1.2;
+                break;
+            case "Canada":
+                shippingCost = shippingCost * 1.18;
+                break;
+            case "Mexico":
+                shippingCost = shippingCost * 1.35;
+                break;
+            case "UK":
+                shippingCost = shippingCost * 1.27;
+            default:
+                shippingCost = shippingCost * 2;
+        }
+        return shippingCost;
+    }
+}
+~~~~
+
+~~~1R-src/main/java/experiment/Customer.java
+package main.java.experiment;
+
+import java.time.*;
+
+public class Customer {
+
+    private String username;
+    private Address address;
+    private int membershipLevel;
+    private LocalDate registrationDate;
+
+    public Customer(String username, String address, int postalCode,
+                    String country, int membershipLevel, LocalDate registrationDate){
+        this.username = username;
+        this.address = new Address(address, postalCode, country);
+        this.membershipLevel = membershipLevel;
+	    this.registrationDate = registrationDate;
+    }
+
+    public int getMembershipLevel() {
+        membershipLevel = updateMembership(membershipLevel);
+        return membershipLevel;
+    }
+
+    public Address getAddress(){ return address; }
+
+    /**
+     * Checks for how long a customer has been registered and updates their membership level accordingly.
+     * If a customer has been registered for at least 1 year its membership level is equivalent to the
+     * number of years since their registration.
+     * The highest level of membership is 10.
+     * @param membership - the current membership of a customer
+     * @return the updated membership level
+     */
+    private int updateMembership(int membership){
+        LocalDate today = LocalDate.now();
+        Period membershipDuration = Period.between(registrationDate, today);
+        int membershipDurationYears = membershipDuration.getYears();
+        if(membershipDurationYears >= 1) {
+            membership = membershipDurationYears;
+        }
+        if(membership > 10) {
+            membership = 10;
+        }
+        return membership;
+    }
+
+    public class Address{
+
+        private String address;
+        private int postalCode;
+        private String country;
+
+        public Address(String address, int postalCode, String country){
+            this.address = address;
+            this.postalCode = postalCode;
+            this.country = country;
+        }
+
+        public String getCountry(){ return country; }
+    }
+}
+~~~~
+
+~~~2R-src/main/java/experiment/OnlineBasket.java
+package main.java.experiment;
+
+import java.util.*;
+
+public class OnlineBasket {
+
+    private HashMap<Integer, Product> products;
+
+    public OnlineBasket(){
+        this.products = new HashMap<>();
+    }
+
+    /**
+     * Adds a product to the basket
+     * @param product - the product to add to the basket
+     */
+    public void addToBasket(Product product){ products.put(product.getId(), product); }
+
+    /**
+     * Removes a product from the basket
+     * @param productId - the id of the product to remove
+     */
+    public void removeProductFromBasket(int productId){ products.remove(productId); }
+
+    /**
+     * Returns the list of products currently in the basket
+     * @return products in the basket
+     */
+    public List<Product> getProductsInBasket(){
+        List<Product> productsInBasket = new ArrayList<>();
+        productsInBasket.addAll(products.values());
+        return productsInBasket;
+    }
+
+    /**
+     * Computes the shipping costs of the products in the basket
+     * @param destinationAddress - the address where the products are shipped
+     * @return the shipping costs of the products
+     */
+    public double finalizeOrder(Customer.Address destinationAddress) {
+        double basketWeight = computeBasketProductsWeight();
+        AdditionalCostsManager additionalCostsManager = new AdditionalCostsManager();
+        return additionalCostsManager.computeShippingCosts(basketWeight, destinationAddress);
+    }
+
+    /**
+     * Computes the total weight of the products in the basket
+     * @return the total weight of the products in the order
+     */
+    private double computeBasketProductsWeight(){
+        double totalWeight = 0;
+        for(Product product : products.values()) {
+            totalWeight += product.getWeight();
+        }
+        return totalWeight;
+    }
+}
+~~~~
+
+~~~3R-src/main/java/experiment/Product.java
+package main.java.experiment;
+
+import java.time.*;
+
+public class Product {
+
+    private int id;
+    private String name;
+    private double price;
+    private double weight;
+    private boolean onSale;
+    private LocalDate expirationDate;
+
+    public Product(int id, String name, double price, double weight, boolean onSale, LocalDate expirationDate){
+        this.id = id;
+        this.name = name;
+        this.price = price;
+        this.weight = weight;
+        this.onSale = onSale;
+        this.expirationDate = expirationDate;
+    }
+
+    public int getId(){ return id; }
+
+    public double getPrice(){ return price; }
+
+    public double getWeight(){ return weight; }
+
+    public boolean isOnSale(){ return onSale; }
+
+    /**
+     * Applies a discount if the product is close to its expiration date.
+     * If the product expires in less than 7 days, a discount of 0.05 is applied
+     * for each day passed.
+     */
+    public void updateExpirationDiscount(){
+        LocalDate today = LocalDate.now();
+        Period periodUntilExpiration = Period.between(today, expirationDate);
+        int daysUntilExpiration = periodUntilExpiration.getDays();
+        if(daysUntilExpiration < 7) {
+            double discount = (7 - daysUntilExpiration) * 0.05;
+            price = price * (1 - discount);
+        }
+    }
+}
+~~~~
+
+~~~4R-src/main/java/experiment/ReceiptCalculator.java
+package main.java.experiment;
+
+import java.util.*;
+
+public class ReceiptCalculator {
+
+    /**
+     * Returns the discount rate based on the membership level of the customer.
+     * Customers at level 1 do not receive any discount.
+     * Customers at level 2 to 4 receive a 10% discount.
+     * Customers from level 5 included receive a 25% discount.
+     * @param membershipLevel - the level of membership of the customer
+     * @return the discount rate applied to the customer
+     */
+    public double getSaleDiscountRate(int membershipLevel){
+        double discountRate = 0;
+        if(membershipLevel > 2 && membershipLevel < 5) {
+            discountRate = 0.1;
+        }
+        if(membershipLevel >= 5) {
+            discountRate = 0.25;
+        }
+        return discountRate;
+    }
+
+    /**
+     * Computes the total cost of the products bought by a customer (including the shipping costs).
+     * If a product is on sale, a discount is applied.
+     * @param products - the list of products in the order
+     * @param membershipLevel - the level of membership of the customer
+     * @param shippingCosts - the shipping costs of the order
+     * @return the total cost of the products
+     */
+    public double computeTotalCost(List<Product> products, int membershipLevel, double shippingCosts) {
+        double totalPrice = shippingCosts;
+        for (Product product : products) {
+            if (product.isOnSale()) {
+                totalPrice += product.getPrice() * (1 - getSaleDiscountRate(membershipLevel));
+            } else {
+                totalPrice += product.getPrice();
+            }
+        }
+        return totalPrice;
+    }
+}
+~~~~

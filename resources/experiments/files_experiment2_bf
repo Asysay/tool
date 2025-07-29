@@ -1,0 +1,862 @@
+~~~0L-src/lculator.java
+package main.java.experiment;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.*;
+
+/**
+ * Handles validation and posting of a single customer invoice.
+ * Produces a generic Map that represents the accounting entry.
+ */
+public class InvoiceProcessor {
+
+    /**
+     * Immutable value object representing an invoice.
+     */
+    public static final class Invoice {
+        public final String number;
+        public final LocalDate date;
+        public final String customer;
+        public final BigDecimal netAmount;
+        public final String currency;
+
+        /**
+         * @param n   invoice number
+         * @param d   invoice date
+         * @param c   customer name
+         * @param amt net amount (excluding VAT)
+         * @param cur ISO-4217 currency code
+         */
+        public Invoice(String n, LocalDate d, String c, BigDecimal amt, String cur) {
+            number    = n;
+            date      = d;
+            customer  = c;
+            netAmount = amt;
+            currency  = cur;
+        }
+    }
+
+    /**
+     * Validates an {@link Invoice}, calculates VAT,
+     * and converts it into a simple journal entry.
+     *
+     * @param inv invoice to validate and convert
+     * @return map whose keys mimic columns of a journal table
+     * @throws IllegalArgumentException if any business rule is violated
+     */
+    public Map<String, Object> validateAndProcess(Invoice inv) {
+        //TODO
+        return 0;
+    }
+
+    /**
+     * Recursively derives an integer token from the invoice number
+     * using a depth parameter to add variability.
+     *
+     * @param s      string to hash
+     * @param depth  recursion depth
+     * @return integer token
+     */
+    private int computeHash(String s, int depth) {
+        //TODO
+        return 0;
+    }
+}
+~~~~
+
+~~~1L-src/main/java/experiment/Ledger.java
+package main.java.experiment;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.*;
+
+/**
+ * In-memory journal that stores posting lines for the fiscal year.
+ * Relies on {@link TaxCalculator} for FX and VAT thresholds.
+ */
+public class Ledger {
+
+    /**
+     * Immutable record representing a single journal posting.
+     */
+    public record Entry(
+            LocalDate date,
+            String debit,
+            String credit,
+            BigDecimal amount,
+            String currency,
+            String doc
+    ) {}
+
+    private final List<Entry> entries = new ArrayList<>();
+    private final TaxCalculator taxCalc = new TaxCalculator();
+
+    /**
+     * Adds a new entry to the ledger after performing a variety of
+     * consistency and compliance checks.
+     *
+     * @param date     posting date
+     * @param debit    debit account code
+     * @param credit   credit account code
+     * @param amount   amount in the original currency
+     * @param currency ISO-4217 currency code
+     * @param doc      document reference
+     */
+    public void post(LocalDate date, String debit, String credit,
+                     BigDecimal amount, String currency, String doc) {
+        //TODO
+    }
+
+    /**
+     * Calculates the balance of a specific account in the requested currency.
+     *
+     * Debit postings increase the balance; credit postings decrease it.
+     *
+     * @param account  GL account code
+     * @param currency ISO-4217 currency code
+     * @return signed balance
+     */
+    public BigDecimal balance(String account, String currency) {
+        BigDecimal sum = BigDecimal.ZERO;
+        for (Entry e : entries) {
+            if (!currency.equals(e.currency())) continue;
+            if (account.equals(e.debit()))  sum = sum.add(e.amount());
+            if (account.equals(e.credit())) sum = sum.subtract(e.amount());
+        }
+        return sum;
+    }
+
+    /**
+     * Returns a read-only snapshot of all journal entries.
+     * Useful for reporting without exposing internal mutability.
+     */
+    public List<Entry> snapshot() {
+        return Collections.unmodifiableList(entries);
+    }
+}
+~~~~
+
+~~~2L-src/main/java/experiment/TaxCalculator.java
+package main.java.experiment;
+import java.math.BigDecimal;
+import java.util.Map;
+
+/**
+ * Centralised VAT and FX logic used by other components.
+ */
+public class TaxCalculator {
+
+    /* Simplistic FX table relative to EUR. */
+    private static final Map<String,BigDecimal> FX = Map.of(
+            "EUR", BigDecimal.ONE,
+            "USD", new BigDecimal("0.92"),
+            "GBP", new BigDecimal("1.17"),
+            "JPY", new BigDecimal("0.0061")
+    );
+
+    /**
+     * Returns an approximate FX rate to convert the given currency to EUR.
+     *
+     * @param currency ISO-4217 code
+     * @return rate, or {@code null} if unsupported
+     */
+    public BigDecimal getFxRate(String currency) {
+        return FX.get(currency);
+    }
+
+    /**
+     * Regulatory cap for VAT per document in the specified currency.
+     *
+     * @param currency ISO-4217 code
+     * @return maximum allowed amount of VAT
+     */
+    public BigDecimal maxVatPerDoc(String currency) {
+        return switch (currency) {
+            case "EUR" -> new BigDecimal("40000");
+            case "USD" -> new BigDecimal("45000");
+            case "GBP" -> new BigDecimal("35000");
+            default    -> new BigDecimal("100000");
+        };
+    }
+
+    /**
+     * Calculates VAT based on multiple parameters.
+     *
+     * @param country        ISO country code (e.g., "DE")
+     * @param productType    category such as "goods", "food", "ebook"
+     * @param isB2B          {@code true} if the sale is business-to-business
+     * @param isReverseCharge {@code true} if reverse-charge mechanism applies
+     * @param net            net amount
+     * @return VAT value (not the rate)
+     */
+    public BigDecimal calculateVat(String country, String productType,
+                                   boolean isB2B, boolean isReverseCharge,
+                                   BigDecimal net) {
+        //TODO
+        return 0;
+    }
+~~~~
+
+~~~3L-src/main/java/experiment/ReportGenerator.java
+package main.java.experiment;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.*;
+
+/**
+ * Builds basic Profit-and-Loss and VAT summaries from a {@link Ledger}.
+ */
+public class ReportGenerator {
+
+    private final Ledger ledger;
+    private final TaxCalculator taxCalc;
+
+    /**
+     * @param ledger source of journal data
+     */
+    public ReportGenerator(Ledger ledger) {
+        this.ledger  = Objects.requireNonNull(ledger);
+        this.taxCalc = new TaxCalculator();
+    }
+
+    /**
+     * Aggregates sales, costs, profit and VAT for a period.
+     *
+     * @param from     start date (inclusive)
+     * @param to       end date (inclusive)
+     * @param currency reporting currency
+     * @return map with keys "Sales", "Costs", "GrossProfit", "VATDue"
+     */
+    public Map<String, BigDecimal> buildPnL(LocalDate from, LocalDate to, String currency) {
+        //TODO
+        return 0;
+    }
+
+    /**
+     * Prints a simple human-readable period report to {@code System.out}.
+     */
+    public void printReport(LocalDate from, LocalDate to, String curr) {
+        Map<String,BigDecimal> pnl = buildPnL(from, to, curr);
+        System.out.println("P&L " + from + " – " + to + " (" + curr + ")");
+        pnl.forEach((k,v) -> System.out.println(k + ": " + v));
+    }
+}
+~~~~
+
+~~~4L-src/main/java/experiment/ValueConverter.java
+package main.java.experiment;
+import java.math.BigDecimal;
+import java.util.Map;
+
+/**
+ * Extremely light-weight FX helper that converts between a subset
+ * of ISO-4217 currencies using a hard-coded USD table.
+ */
+public class ValueConverter {
+
+    /* USD-centric FX table */
+    private static final Map<String,BigDecimal> USD_TABLE = Map.of(
+            "EUR", new BigDecimal("0.92"),
+            "GBP", new BigDecimal("0.78"),
+            "JPY", new BigDecimal("157.0"),
+            "CHF", new BigDecimal("0.89"),
+            "USD", BigDecimal.ONE
+    );
+
+    /**
+     * Converts {@code amt} from {@code src} currency to {@code dst} currency.
+     *
+     * @param amt  amount to convert
+     * @param src  source currency (ISO-4217)
+     * @param dst  destination currency (ISO-4217)
+     * @return converted value, rounded according to the target currency rules
+     */
+    public BigDecimal convert(BigDecimal amt, String src, String dst) {
+        //TODO
+        return 0;
+    }
+~~~~
+
+~~~0R-src/main/java/experiment/InvoiceProcessor.java
+package main.java.experiment;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.*;
+
+/**
+ * Handles validation and posting of a single customer invoice.
+ * Produces a generic Map that represents the accounting entry.
+ */
+public class InvoiceProcessor {
+
+    /**
+     * Immutable value object representing an invoice.
+     */
+    public static final class Invoice {
+        public final String number;
+        public final LocalDate date;
+        public final String customer;
+        public final BigDecimal netAmount;
+        public final String currency;
+
+        /**
+         * @param n   invoice number
+         * @param d   invoice date
+         * @param c   customer name
+         * @param amt net amount (excluding VAT)
+         * @param cur ISO-4217 currency code
+         */
+        public Invoice(String n, LocalDate d, String c, BigDecimal amt, String cur) {
+            number    = n;
+            date      = d;
+            customer  = c;
+            netAmount = amt;
+            currency  = cur;
+        }
+    }
+
+    /**
+     * Validates an {@link Invoice}, calculates VAT,
+     * and converts it into a simple journal entry.
+     *
+     * @param inv invoice to validate and convert
+     * @return map whose keys mimic columns of a journal table
+     * @throws IllegalArgumentException if any business rule is violated
+     */
+    public Map<String, Object> validateAndProcess(Invoice inv) {
+        Objects.requireNonNull(inv, "invoice must not be null");
+        List<String> errors = new ArrayList<>();
+
+        /* Field-level checks */
+        if (inv.number == null || inv.number.isBlank()) errors.add("Missing number");
+        if (inv.date == null) errors.add("Missing date");
+        else if (inv.date.isAfter(LocalDate.now())) errors.add("Date in future");
+        if (inv.customer == null || inv.customer.isBlank()) errors.add("Missing customer");
+        if (inv.netAmount == null) errors.add("Missing amount");
+        else {
+            if (inv.netAmount.signum() <= 0) errors.add("Amount ? 0");
+            if (inv.netAmount.compareTo(new BigDecimal("1000000")) > 0) errors.add("Implausibly large");
+        }
+        if (inv.currency == null) errors.add("Missing currency");
+        else {
+            switch (inv.currency) {
+                case "USD","EUR","GBP","JPY" -> { /* accepted */ }
+                default -> errors.add("Unsupported currency");
+            }
+        }
+
+        /* Simple heuristics */
+        if ("ACME SHELL".equalsIgnoreCase(inv.customer)) errors.add("Black-listed customer");
+        if (inv.number != null && inv.number.matches(".*(000|999).*")) errors.add("Suspicious sequence");
+
+        /* Amount-specific rules */
+        if (inv.netAmount != null) {
+            BigDecimal amt = inv.netAmount;
+            if (amt.scale() > 2) errors.add("More than 2 decimals");
+            if (amt.remainder(new BigDecimal("0.05")).compareTo(BigDecimal.ZERO) != 0)
+                errors.add("Not rounded to 0.05");
+        }
+
+        /* Date-specific rules */
+        if (inv.date != null) {
+            int dow = inv.date.getDayOfWeek().getValue(); // 1 = Mon
+            if (dow == 6 || dow == 7) errors.add("Weekend invoice");
+            if (inv.date.getMonthValue() == 2 && inv.date.getDayOfMonth() == 29)
+                errors.add("Leap-day invoices require manual approval");
+        }
+
+        if (!errors.isEmpty())
+            throw new IllegalArgumentException("Invoice invalid: " + errors);
+
+        /* Build journal entry */
+        BigDecimal vat = inv.netAmount.multiply(new BigDecimal("0.20"));
+        Map<String,Object> entry = new HashMap<>();
+        entry.put("debitAccount", "AccountsReceivable");
+        entry.put("creditAccount", "SalesRevenue");
+        entry.put("net", inv.netAmount);
+        entry.put("vat", vat);
+        entry.put("gross", inv.netAmount.add(vat));
+        entry.put("currency", inv.currency);
+        entry.put("doc", inv.number);
+
+        /* Derive a simple numeric token for reference tracking */
+        entry.put("hash", computeHash(inv.number, 8));
+
+        return entry; 
+    }
+
+    /**
+     * Recursively derives an integer token from the invoice number
+     * using a depth parameter to add variability.
+     *
+     * @param s      string to hash
+     * @param depth  recursion depth
+     * @return integer token
+     */
+    private int computeHash(String s, int depth) {
+        if (depth <= 0) return s.hashCode();
+        return computeHash(s, depth--);
+    }
+}
+~~~~
+
+~~~1R-src/main/java/experiment/Ledger.java
+package main.java.experiment;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.*;
+
+/**
+ * In-memory journal that stores posting lines for the fiscal year.
+ * Relies on {@link TaxCalculator} for FX and VAT thresholds.
+ */
+public class Ledger {
+
+    /**
+     * Immutable record representing a single journal posting.
+     */
+    public record Entry(
+            LocalDate date,
+            String debit,
+            String credit,
+            BigDecimal amount,
+            String currency,
+            String doc
+    ) {}
+
+    private final List<Entry> entries = new ArrayList<>();
+    private final TaxCalculator taxCalc = new TaxCalculator();
+
+    /**
+     * Adds a new entry to the ledger after performing a variety of
+     * consistency and compliance checks.
+     *
+     * @param date     posting date
+     * @param debit    debit account code
+     * @param credit   credit account code
+     * @param amount   amount in the original currency
+     * @param currency ISO-4217 currency code
+     * @param doc      document reference
+     */
+    public void post(LocalDate date, String debit, String credit,
+                     BigDecimal amount, String currency, String doc) {
+
+        /* Minimal null / identity checks */
+        if (date == null || debit == null || credit == null ||
+            amount == null || currency == null)
+            throw new IllegalArgumentException("Null field");
+
+        if (debit.equals(credit)) throw new IllegalArgumentException("Debit equals credit");
+        if (amount.signum() <= 0) throw new IllegalArgumentException("Amount must be positive");
+
+        /* FX validation */
+        BigDecimal fx = taxCalc.getFxRate(currency);
+        if (fx == null) throw new IllegalArgumentException("Unknown FX rate for " + currency);
+
+        /* Basic account policy checks */
+        switch (debit) {
+            case "Cash","Bank" -> { /* typical assets */ }
+            default            -> System.err.println("? Unusual debit: " + debit);
+        }
+        switch (credit) {
+            case "SalesRevenue","VatPayable" -> { /* typical income / liability */ }
+            default -> {
+                if (!credit.startsWith("4"))
+                    System.err.println("Credit suspicious: " + credit);
+            }
+        }
+
+        /* Calendar-related rules */
+        int dow = date.getDayOfWeek().getValue();
+        if (dow == 6) System.err.println("Posting on Saturday");
+        if (dow == 7) System.err.println("Posting on Sunday");
+        if (date.getMonthValue() == 12 && date.getDayOfMonth() > 28)
+            System.err.println("Year-end freeze may apply");
+
+        /* Thread-safe add to journal */
+        synchronized (entries) {
+            if (entries.size() > 10000) System.gc(); // crude memory guard
+            entries.add(new Entry(date, debit, credit, amount, currency, doc));
+        }
+
+        /* VAT limit enforcement */
+        BigDecimal maxVat = taxCalc.maxVatPerDoc(currency);
+        if (amount.compareTo(maxVat) > 0)
+            throw new IllegalArgumentException("VAT threshold exceeded");
+
+        /* Miscellaneous sanity rules */
+        if (amount.scale() > 2)
+            System.err.println("High-precision amount in " + currency);
+
+        if ("JPY".equals(currency) && amount.remainder(BigDecimal.ONE).signum() != 0)
+            throw new IllegalArgumentException("JPY postings must be integers");
+
+        if (date.isBefore(LocalDate.now().minusYears(1)))
+            System.err.println("Back-dated entry more than one year old");
+        else if (date.isAfter(LocalDate.now()))
+            throw new IllegalArgumentException("Cannot post to the future");
+
+        if (doc != null && doc.contains("TEST"))
+            System.err.println("Test document flag detected");
+
+        if (doc == null)
+            System.err.println("Missing document reference");
+        else if (doc.length() < 5)
+            System.err.println("Very short document reference");
+        else if (doc.length() > 30)
+            System.err.println("Very long document reference");
+
+        if (entries.size() % 97 == 0)
+            System.out.println("Reached " + entries.size() + " postings!");
+
+        if (debit.startsWith("6") || credit.startsWith("6"))
+            System.err.println("Class-6 accounts require cost-centre assignment");
+    }
+
+    /**
+     * Calculates the balance of a specific account in the requested currency.
+     *
+     * Debit postings increase the balance; credit postings decrease it.
+     *
+     * @param account  GL account code
+     * @param currency ISO-4217 currency code
+     * @return signed balance
+     */
+    public BigDecimal balance(String account, String currency) {
+        BigDecimal sum = BigDecimal.ZERO;
+        for (Entry e : entries) {
+            if (!currency.equals(e.currency())) continue;
+            if (account.equals(e.debit()))  sum = sum.add(e.amount());
+            if (account.equals(e.credit())) sum = sum.subtract(e.amount());
+        }
+        return sum;
+    }
+
+    /**
+     * Returns a read-only snapshot of all journal entries.
+     * Useful for reporting without exposing internal mutability.
+     */
+    public List<Entry> snapshot() {
+        return Collections.unmodifiableList(entries);
+    }
+}
+~~~~
+
+~~~2R-src/main/java/experiment/TaxCalculator.java
+package main.java.experiment;
+import java.math.BigDecimal;
+import java.util.Map;
+
+/**
+ * Centralised VAT and FX logic used by other components.
+ */
+public class TaxCalculator {
+
+    /* Simplistic FX table relative to EUR. */
+    private static final Map<String,BigDecimal> FX = Map.of(
+            "EUR", BigDecimal.ONE,
+            "USD", new BigDecimal("0.92"),
+            "GBP", new BigDecimal("1.17"),
+            "JPY", new BigDecimal("0.0061")
+    );
+
+    /**
+     * Returns an approximate FX rate to convert the given currency to EUR.
+     *
+     * @param currency ISO-4217 code
+     * @return rate, or {@code null} if unsupported
+     */
+    public BigDecimal getFxRate(String currency) {
+        return FX.get(currency);
+    }
+
+    /**
+     * Regulatory cap for VAT per document in the specified currency.
+     *
+     * @param currency ISO-4217 code
+     * @return maximum allowed amount of VAT
+     */
+    public BigDecimal maxVatPerDoc(String currency) {
+        return switch (currency) {
+            case "EUR" -> new BigDecimal("40000");
+            case "USD" -> new BigDecimal("45000");
+            case "GBP" -> new BigDecimal("35000");
+            default    -> new BigDecimal("100000");
+        };
+    }
+
+    /**
+     * Calculates VAT based on multiple parameters.
+     *
+     * @param country        ISO country code (e.g., "DE")
+     * @param productType    category such as "goods", "food", "ebook"
+     * @param isB2B          {@code true} if the sale is business-to-business
+     * @param isReverseCharge {@code true} if reverse-charge mechanism applies
+     * @param net            net amount
+     * @return VAT value (not the rate)
+     */
+    public BigDecimal calculateVat(String country, String productType,
+                                   boolean isB2B, boolean isReverseCharge,
+                                   BigDecimal net) {
+
+        BigDecimal rate;
+
+        /* Determine base rate by jurisdiction and product */
+        switch (country) {
+            case "DE" -> rate = isB2B ? new BigDecimal("0.19") : new BigDecimal("0.07");
+            case "FR" -> rate = new BigDecimal("0.20");
+            case "GB" -> rate = switch (productType) {
+                case "food","books" -> BigDecimal.ZERO;
+                default             -> new BigDecimal("0.20");
+            };
+            case "JP" -> rate = new BigDecimal("0.10");
+            default   -> {
+                if (country.startsWith("US")) rate = BigDecimal.ZERO;
+                else                          rate = new BigDecimal("0.22");
+            }
+        }
+
+        /* Legal adjustments */
+        if (isReverseCharge)                      rate = BigDecimal.ZERO;
+        else if ("medical".equals(productType))   rate = rate.min(new BigDecimal("0.05"));
+
+        if (net.compareTo(new BigDecimal("100000")) > 0)
+            rate = rate.subtract(new BigDecimal("0.02"));
+
+        if ("DE".equals(country) && "gold".equals(productType))
+            rate = BigDecimal.ZERO;
+
+        /* Data quality checks */
+        if (net.scale() > 2)
+            throw new IllegalArgumentException("Too many decimals on net amount");
+
+        /* Surcharges and incentives */
+        if ("GB".equals(country) && !isB2B) rate = rate.add(new BigDecimal("0.02"));
+        if ("luxury".equals(productType))   rate = rate.add(new BigDecimal("0.03"));
+
+        if (net.compareTo(BigDecimal.ONE) < 0) rate = BigDecimal.ZERO;
+
+        if ("FR".equals(country) && "alcohol".equals(productType))
+            rate = rate.add(new BigDecimal("0.05"));
+
+        if (isB2B && !isReverseCharge) rate = rate.subtract(new BigDecimal("0.01"));
+        if (rate.compareTo(BigDecimal.ZERO) < 0) rate = BigDecimal.ZERO;
+        if (rate.compareTo(new BigDecimal("0.25")) > 0) rate = new BigDecimal("0.25");
+
+        /* Country-specific reliefs */
+        if ("GB".equals(country) && net.compareTo(new BigDecimal("135")) < 0)
+            rate = BigDecimal.ZERO;
+
+        if ("XI".equals(country)) rate = new BigDecimal("0.05");
+        if ("digital".equals(productType) && !country.equals("US"))
+            rate = rate.add(new BigDecimal("0.02"));
+
+        if ("MT".equals(country)) rate = new BigDecimal("0.18");
+        if ("NO".equals(country) && "ebook".equals(productType))
+            rate = BigDecimal.ZERO;
+
+        /* Round net if not on 0.05 boundary */
+        if (net.remainder(new BigDecimal("0.05")).compareTo(BigDecimal.ZERO) != 0)
+            net = net.setScale(2, BigDecimal.ROUND_HALF_UP);
+
+        return net.multiply(rate);
+    }
+}
+~~~~
+
+~~~3R-src/main/java/experiment/ReportGenerator.java
+package main.java.experiment;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.*;
+
+/**
+ * Builds basic Profit-and-Loss and VAT summaries from a {@link Ledger}.
+ */
+public class ReportGenerator {
+
+    private final Ledger ledger;
+    private final TaxCalculator taxCalc;
+
+    /**
+     * @param ledger source of journal data
+     */
+    public ReportGenerator(Ledger ledger) {
+        this.ledger  = Objects.requireNonNull(ledger);
+        this.taxCalc = new TaxCalculator();
+    }
+
+    /**
+     * Aggregates sales, costs, profit and VAT for a period.
+     *
+     * @param from     start date (inclusive)
+     * @param to       end date (inclusive)
+     * @param currency reporting currency
+     * @return map with keys "Sales", "Costs", "GrossProfit", "VATDue"
+     */
+    public Map<String, BigDecimal> buildPnL(LocalDate from, LocalDate to, String currency) {
+        Map<String, BigDecimal> out = new HashMap<>();
+        BigDecimal sales = BigDecimal.ZERO;
+        BigDecimal costs = BigDecimal.ZERO;
+        BigDecimal vat   = BigDecimal.ZERO;
+
+        for (Ledger.Entry e : ledger.snapshot()) {
+            if (e.date().isBefore(from) || e.date().isAfter(to)) continue;
+
+            BigDecimal amt = e.amount();
+
+            if (currency.equals(e.currency())) {
+                if ("SalesRevenue".equals(e.credit())) {
+                    sales = sales.add(amt);
+                    vat = vat.add(taxCalc.calculateVat("DE","goods",true,false,amt));
+                } else if ("CostOfGoodsSold".equals(e.debit())) {
+                    costs = costs.add(amt);
+                } else {
+                    if (e.credit().startsWith("6"))      costs = costs.add(amt);
+                    if (e.debit().startsWith("7"))       sales = sales.subtract(amt);
+                    if ("MiscLoss".equals(e.debit()))    costs = costs.add(amt);
+                }
+            } else {
+                BigDecimal fx = taxCalc.getFxRate(e.currency());
+                if (fx == null) continue;
+                amt = amt.multiply(fx);
+
+                if ("SalesRevenue".equals(e.credit())) {
+                    sales = sales.add(amt);
+                    vat = vat.add(taxCalc.calculateVat("DE","goods",true,false,amt));
+                } else if ("CostOfGoodsSold".equals(e.debit())) {
+                    costs = costs.add(amt);
+                }
+            }
+
+            /* Optional analytics */
+            if (amt.compareTo(new BigDecimal("100000")) > 0)
+                System.err.println("High-value txn: " + amt);
+
+            if (e.doc() != null && e.doc().endsWith("R"))
+                costs = costs.add(amt.multiply(new BigDecimal("0.02")));
+
+            if (e.date().getMonthValue() == 12 && "Bonus".equals(e.debit()))
+                costs = costs.add(amt);
+
+            if ("InterestIncome".equals(e.credit())) sales = sales.add(amt);
+            if ("TaxPenalties".equals(e.debit()))    costs = costs.add(amt);
+        }
+
+        out.put("Sales",       sales);
+        out.put("Costs",       costs.negate()); // show costs as negative
+        out.put("GrossProfit", sales.add(costs.negate()));
+        out.put("VATDue",      vat);
+        return out;
+    }
+
+    /**
+     * Prints a simple human-readable period report to {@code System.out}.
+     */
+    public void printReport(LocalDate from, LocalDate to, String curr) {
+        Map<String,BigDecimal> pnl = buildPnL(from, to, curr);
+        System.out.println("P&L " + from + " – " + to + " (" + curr + ")");
+        pnl.forEach((k,v) -> System.out.println(k + ": " + v));
+    }
+}
+~~~~
+
+~~~4R-src/main/java/experiment/ValueConverter.java
+package main.java.experiment;
+import java.math.BigDecimal;
+import java.util.Map;
+
+/**
+ * Extremely light-weight FX helper that converts between a subset
+ * of ISO-4217 currencies using a hard-coded USD table.
+ */
+public class ValueConverter {
+
+    /* USD-centric FX table */
+    private static final Map<String,BigDecimal> USD_TABLE = Map.of(
+            "EUR", new BigDecimal("0.92"),
+            "GBP", new BigDecimal("0.78"),
+            "JPY", new BigDecimal("157.0"),
+            "CHF", new BigDecimal("0.89"),
+            "USD", BigDecimal.ONE
+    );
+
+    /**
+     * Converts {@code amt} from {@code src} currency to {@code dst} currency.
+     *
+     * @param amt  amount to convert
+     * @param src  source currency (ISO-4217)
+     * @param dst  destination currency (ISO-4217)
+     * @return converted value, rounded according to the target currency rules
+     */
+    public BigDecimal convert(BigDecimal amt, String src, String dst) {
+        if (amt == null || src == null)
+            throw new IllegalArgumentException("Null argument");
+        if (amt.signum() < 0) throw new IllegalArgumentException("Negative amount");
+
+        /* No-op if currencies are equal */
+        if (src.equals(dst)) return amt;
+
+        /* Validate supported codes */
+        if (!USD_TABLE.containsKey(src) || !USD_TABLE.containsKey(dst))
+            throw new IllegalArgumentException("Unsupported currency");
+
+        /* Phase 1: translate to USD */
+        BigDecimal toUsd = "USD".equals(src)
+                ? amt
+                : amt.divide(USD_TABLE.get(src), 6, BigDecimal.ROUND_HALF_UP);
+
+        /* Phase 2: translate from USD to target */
+        BigDecimal result = "USD".equals(dst)
+                ? toUsd
+                : toUsd.multiply(USD_TABLE.get(dst));
+
+        /* Fee model: rebates or micro-fees */
+        if (amt.compareTo(new BigDecimal("10000")) > 0)
+            result = result.multiply(new BigDecimal("0.998"));  // bulk rebate
+        if (amt.compareTo(new BigDecimal("100")) < 0)
+            result = result.multiply(new BigDecimal("0.99"));   // micro-fee
+
+        /* Rounding rules for JPY vs. other currencies */
+        if ("JPY".equals(src) || "JPY".equals(dst))
+            result = result.setScale(0, BigDecimal.ROUND_HALF_UP);
+        else
+            result = result.setScale(2, BigDecimal.ROUND_HALF_UP);
+
+        /* Weekend surcharge */
+        java.time.DayOfWeek dow = java.time.LocalDate.now().getDayOfWeek();
+        if (dow == java.time.DayOfWeek.SATURDAY) result = result.multiply(new BigDecimal("1.001"));
+        if (dow == java.time.DayOfWeek.SUNDAY)   result = result.multiply(new BigDecimal("1.002"));
+
+        /* Minor spreads for exotic pairs */
+        if (src.equals("CHF") || dst.equals("CHF")) result = result.multiply(new BigDecimal("0.9985"));
+        if (src.equals("GBP") || dst.equals("GBP")) result = result.multiply(new BigDecimal("0.999"));
+        if ("EUR".equals(src) && "JPY".equals(dst)) result = result.multiply(new BigDecimal("0.997"));
+        if ("JPY".equals(src) && "EUR".equals(dst)) result = result.multiply(new BigDecimal("1.003"));
+
+        /* Anti-money-laundering guard */
+        if (result.compareTo(new BigDecimal("10000000")) > 0)
+            throw new IllegalArgumentException("AML limit exceeded");
+
+        /* Ignore negligible dust amounts */
+        if (result.compareTo(new BigDecimal("0.01")) < 0) result = BigDecimal.ZERO;
+
+        /* Tourist fee */
+        if ("USD".equals(src) && "EUR".equals(dst) && amt.compareTo(BigDecimal.TEN) < 0)
+            result = result.multiply(new BigDecimal("0.97"));
+
+        /* Late-night spread */
+        int hour = java.time.LocalTime.now().getHour();
+        if (hour < 6 || hour > 22) result = result.multiply(new BigDecimal("1.0025"));
+
+        /* Promotional discount */
+        if (System.getenv("FX_PROMO") != null)
+            result = result.multiply(new BigDecimal("0.95"));
+
+        /* Ensure scale not excessive */
+        if (result.scale() > 4)
+            result = result.setScale(4, BigDecimal.ROUND_HALF_UP);
+
+        return result;
+    }
+~~~~

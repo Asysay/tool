@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+            <title>{{title}}</title>
+            <!-- Requires jQuery -->
+            <script src="{{ url_for('static', filename='js/jquery.min.js')}}" type="text/javascript"></script>
+            
+            <link rel="stylesheet" media="all" href="{{ url_for('static', filename='css/style.css')}}" />
+            <script>
+                $(document).ready(function(){
+                    var form = document.getElementById('current_form');
+                    if (form.attachEvent) {
+                        form.attachEvent("submit", processForm);
+                    } else {
+                        form.addEventListener("submit", processForm);
+                    }
+                });
+            function processForm(){
+                var ta2 = document.getElementById("q2text");
+                if (ta2.value !== undefined){
+                    other = document.getElementById("q2a9");
+                    $(other).val(ta2.value)
+                }
+            }
+            
+                </script>
+    </head>
+    <body>
+        <section class="content">
+            <p>Please answer the following questions regarding your trust in AI systems:</p><br>
+            <form action="dem_questions" method="post" id="current_form">
+                
+                <fieldset id="fieldset_question_personal" class="container_radio_buttons">
+                    <table class="striped-columns border" style="width:100%">
+                    <p>Please rate how much you agree with each statement regarding your personal view on genAI (1 = Strongly Disagree, 5 = Strongly Agree)</p>
+                        <tbody>
+                            <tr>
+                            <th class="question"></th>
+                            <th>1</th>
+                            <th>2</th>
+                            <th>3</th>
+                            <th>4</th>
+                            <th>5</th>
+                          </tr>
+                          <tr>
+                            <td style="text-align:left;">
+                              There is a community of developers using genAI tools to which I can reach out.
+                            </td>
+                            <td><label for="qtrust_personal1-1"><input type="radio" id="q1_1" name="qtrust_personal1" value="1" required="true"></label></td>
+                            <td><label for="qtrust_personal1-2"><input type="radio" id="q1_2" name="qtrust_personal1" value="2" required="true"></label></td>
+                            <td><label for="qtrust_personal1-3"><input type="radio" id="q1_3" name="qtrust_personal1" value="3" required="true"></label></td>
+                            <td><label for="qtrust_personal1-4"><input type="radio" id="q1_4" name="qtrust_personal1" value="4" required="true"></label></td>
+                            <td><label for="qtrust_personal1-5"><input type="radio" id="q1_5" name="qtrust_personal1" value="5" required="true"></label></td>
+                          </tr>
+
+                          <tr>
+                            <td style="text-align:left;">
+                              I know the brand and platform associated with genAI tools.
+                            </td>
+                            <td><label for="qtrust_personal2-1"><input type="radio" id="qtrust_personal2-1" name="qtrust_personal2" value="1" required="true"></label></td>
+                            <td><label for="qtrust_personal2-2"><input type="radio" id="qtrust_personal2-2" name="qtrust_personal2" value="2" required="true"></label></td>
+                            <td><label for="qtrust_personal2-3"><input type="radio" id="qtrust_personal2-3" name="qtrust_personal2" value="3" required="true"></label></td>
+                            <td><label for="qtrust_personal2-4"><input type="radio" id="qtrust_personal2-4" name="qtrust_personal2" value="4" required="true"></label></td>
+                            <td><label for="qtrust_personal2-5"><input type="radio" id="qtrust_personal2-5" name="qtrust_personal2" value="5" required="true"></label></td>
+                          </tr>
+
+                          <tr>
+                            <td style="text-align:left;">
+                              There are potential benefits of using genAI tools.
+                            </td>
+                            <td><label for="qtrust_personal3-1"><input type="radio" id="qtrust_personal3-1" name="qtrust_personal3" value="1" required="true"></label></td>
+                            <td><label for="qtrust_personal3-2"><input type="radio" id="qtrust_personal3-2" name="qtrust_personal3" value="2" required="true"></label></td>
+                            <td><label for="qtrust_personal3-3"><input type="radio" id="qtrust_personal3-3" name="qtrust_personal3" value="3" required="true"></label></td>
+                            <td><label for="qtrust_personal3-4"><input type="radio" id="qtrust_personal3-4" name="qtrust_personal3" value="4" required="true"></label></td>
+                            <td><label for="qtrust_personal3-5"><input type="radio" id="qtrust_personal3-5" name="qtrust_personal3" value="5" required="true"></label></td>
+                          </tr>
+                    </table>
+                </fieldset>
+
+                <fieldset id="fieldset_question_interaction" class="container_radio_buttons">
+                    <table class="striped-columns border" style="width:100%">
+                    <p>Please rate how much you agree with each statement regarding how you interact with genAI (1 = Strongly Disagree, 5 = Strongly Agree)</p>
+                        <tbody>
+                            <tr>
+                            <th class="question"></th>
+                            <th>1</th>
+                            <th>2</th>
+                            <th>3</th>
+                            <th>4</th>
+                            <th>5</th>
+                          </tr>
+
+                          <tr>
+                          <td style="text-align:left;">
+                            I can easily validate the output provided by genAI tools.
+                          </td>
+                          <td><label for="qtrust_interaction1-1"><input type="radio" id="qtrust_interaction1-1" name="qtrust_interaction1" value="1" required="true"></label></td>
+                          <td><label for="qtrust_interaction1-2"><input type="radio" id="qtrust_interaction1-2" name="qtrust_interaction1" value="2" required="true"></label></td>
+                          <td><label for="qtrust_interaction1-3"><input type="radio" id="qtrust_interaction1-3" name="qtrust_interaction1" value="3" required="true"></label></td>
+                          <td><label for="qtrust_interaction1-4"><input type="radio" id="qtrust_interaction1-4" name="qtrust_interaction1" value="4" required="true"></label></td>
+                          <td><label for="qtrust_interaction1-5"><input type="radio" id="qtrust_interaction1-5" name="qtrust_interaction1" value="5" required="true"></label></td>
+                        </tr>
+
+                        <!-- Interaction 2 -->
+                        <tr>
+                          <td style="text-align:left;">
+                            I can input my own insights, experiences, and preferences in genAI tools.
+                          </td>
+                          <td><label for="qtrust_interaction2-1"><input type="radio" id="qtrust_interaction2-1" name="qtrust_interaction2" value="1" required="true"></label></td>
+                          <td><label for="qtrust_interaction2-2"><input type="radio" id="qtrust_interaction2-2" name="qtrust_interaction2" value="2" required="true"></label></td>
+                          <td><label for="qtrust_interaction2-3"><input type="radio" id="qtrust_interaction2-3" name="qtrust_interaction2" value="3" required="true"></label></td>
+                          <td><label for="qtrust_interaction2-4"><input type="radio" id="qtrust_interaction2-4" name="qtrust_interaction2" value="4" required="true"></label></td>
+                          <td><label for="qtrust_interaction2-5"><input type="radio" id="qtrust_interaction2-5" name="qtrust_interaction2" value="5" required="true"></label></td>
+                        </tr>
+
+                        <!-- Interaction 3 -->
+                        <tr>
+                          <td style="text-align:left;">
+                            I feel I can learn from using genAI technology.
+                          </td>
+                          <td><label for="qtrust_interaction3-1"><input type="radio" id="qtrust_interaction3-1" name="qtrust_interaction3" value="1" required="true"></label></td>
+                          <td><label for="qtrust_interaction3-2"><input type="radio" id="qtrust_interaction3-2" name="qtrust_interaction3" value="2" required="true"></label></td>
+                          <td><label for="qtrust_interaction3-3"><input type="radio" id="qtrust_interaction3-3" name="qtrust_interaction3" value="3" required="true"></label></td>
+                          <td><label for="qtrust_interaction3-4"><input type="radio" id="qtrust_interaction3-4" name="qtrust_interaction3" value="4" required="true"></label></td>
+                          <td><label for="qtrust_interaction3-5"><input type="radio" id="qtrust_interaction3-5" name="qtrust_interaction3" value="5" required="true"></label></td>
+                        </tr>
+                    </table>
+                </fieldset>
+                <fieldset id="fieldset_question_control" class="container_radio_buttons">
+                    <table class="striped-columns border" style="width:100%">
+                    <p>Please rate how much you agree with each statement regarding your control over the usage of genAI (1 = Strongly Disagree, 5 = Strongly Agree)</p>
+                        <tbody>
+                            <tr>
+                            <th class="question"></th>
+                            <th>1</th>
+                            <th>2</th>
+                            <th>3</th>
+                            <th>4</th>
+                            <th>5</th>
+                          </tr>
+                        <!-- Control 1 -->
+                        <tr>
+                          <td style="text-align:left;">
+                            I have the final say in the application or use of genAI's contributions.
+                          </td>
+                          <td><label for="qtrust_control1-1"><input type="radio" id="qtrust_control1-1" name="qtrust_control1" value="1" required="true"></label></td>
+                          <td><label for="qtrust_control1-2"><input type="radio" id="qtrust_control1-2" name="qtrust_control1" value="2" required="true"></label></td>
+                          <td><label for="qtrust_control1-3"><input type="radio" id="qtrust_control1-3" name="qtrust_control1" value="3" required="true"></label></td>
+                          <td><label for="qtrust_control1-4"><input type="radio" id="qtrust_control1-4" name="qtrust_control1" value="4" required="true"></label></td>
+                          <td><label for="qtrust_control1-5"><input type="radio" id="qtrust_control1-5" name="qtrust_control1" value="5" required="true"></label></td>
+                        </tr>
+
+                        <!-- Control 2 -->
+                        <tr>
+                          <td style="text-align:left;">
+                            genAI is easy to integrate into my workflow.
+                          </td>
+                          <td><label for="qtrust_control2-1"><input type="radio" id="qtrust_control2-1" name="qtrust_control2" value="1" required="true"></label></td>
+                          <td><label for="qtrust_control2-2"><input type="radio" id="qtrust_control2-2" name="qtrust_control2" value="2" required="true"></label></td>
+                          <td><label for="qtrust_control2-3"><input type="radio" id="qtrust_control2-3" name="qtrust_control2" value="3" required="true"></label></td>
+                          <td><label for="qtrust_control2-4"><input type="radio" id="qtrust_control2-4" name="qtrust_control2" value="4" required="true"></label></td>
+                          <td><label for="qtrust_control2-5"><input type="radio" id="qtrust_control2-5" name="qtrust_control2" value="5" required="true"></label></td>
+                        </tr>
+                    </table>
+                </fieldset>
+
+                <fieldset id="fieldset_question_system" class="container_radio_buttons">
+                    <table class="striped-columns border" style="width:100%">
+                    <p>Please rate how much you agree with each statement regarding the genAI systems (1 = Strongly Disagree, 5 = Strongly Agree)</p>
+                        <tbody>
+                            <tr>
+                            <th class="question"></th>
+                            <th>1</th>
+                            <th>2</th>
+                            <th>3</th>
+                            <th>4</th>
+                            <th>5</th>
+                          </tr>
+                        <!-- System 1 -->
+                        <tr>
+                          <td style="text-align:left;">
+                            genAI tools are easy to use.
+                          </td>
+                          <td><label for="qtrust_system1-1"><input type="radio" id="qtrust_system1-1" name="qtrust_system1" value="1" required="true"></label></td>
+                          <td><label for="qtrust_system1-2"><input type="radio" id="qtrust_system1-2" name="qtrust_system1" value="2" required="true"></label></td>
+                          <td><label for="qtrust_system1-3"><input type="radio" id="qtrust_system1-3" name="qtrust_system1" value="3" required="true"></label></td>
+                          <td><label for="qtrust_system1-4"><input type="radio" id="qtrust_system1-4" name="qtrust_system1" value="4" required="true"></label></td>
+                          <td><label for="qtrust_system1-5"><input type="radio" id="qtrust_system1-5" name="qtrust_system1" value="5" required="true"></label></td>
+                        </tr>
+
+                        <!-- System 2 -->
+                        <tr>
+                          <td style="text-align:left;">
+                            genAI tools are well crafted with no visual issues.
+                          </td>
+                          <td><label for="qtrust_system2-1"><input type="radio" id="qtrust_system2-1" name="qtrust_system2" value="1" required="true"></label></td>
+                          <td><label for="qtrust_system2-2"><input type="radio" id="qtrust_system2-2" name="qtrust_system2" value="2" required="true"></label></td>
+                          <td><label for="qtrust_system2-3"><input type="radio" id="qtrust_system2-3" name="qtrust_system2" value="3" required="true"></label></td>
+                          <td><label for="qtrust_system2-4"><input type="radio" id="qtrust_system2-4" name="qtrust_system2" value="4" required="true"></label></td>
+                          <td><label for="qtrust_system2-5"><input type="radio" id="qtrust_system2-5" name="qtrust_system2" value="5" required="true"></label></td>
+                        </tr>
+
+                        <!-- System 3 -->
+                        <tr>
+                          <td style="text-align:left;">
+                            genAI developers clearly takes care of important matters like security and privacy.
+                          </td>
+                          <td><label for="qtrust_system3-1"><input type="radio" id="qtrust_system3-1" name="qtrust_system3" value="1" required="true"></label></td>
+                          <td><label for="qtrust_system3-2"><input type="radio" id="qtrust_system3-2" name="qtrust_system3" value="2" required="true"></label></td>
+                          <td><label for="qtrust_system3-3"><input type="radio" id="qtrust_system3-3" name="qtrust_system3" value="3" required="true"></label></td>
+                          <td><label for="qtrust_system3-4"><input type="radio" id="qtrust_system3-4" name="qtrust_system3" value="4" required="true"></label></td>
+                          <td><label for="qtrust_system3-5"><input type="radio" id="qtrust_system3-5" name="qtrust_system3" value="5" required="true"></label></td>
+                        </tr>
+
+                        <!-- System 4 -->
+                        <tr>
+                          <td style="text-align:left;">
+                            genAI's outcomes seem consistently correct.
+                          </td>
+                          <td><label for="qtrust_system4-1"><input type="radio" id="qtrust_system4-1" name="qtrust_system4" value="1" required="true"></label></td>
+                          <td><label for="qtrust_system4-2"><input type="radio" id="qtrust_system4-2" name="qtrust_system4" value="2" required="true"></label></td>
+                          <td><label for="qtrust_system4-3"><input type="radio" id="qtrust_system4-3" name="qtrust_system4" value="3" required="true"></label></td>
+                          <td><label for="qtrust_system4-4"><input type="radio" id="qtrust_system4-4" name="qtrust_system4" value="4" required="true"></label></td>
+                          <td><label for="qtrust_system4-5"><input type="radio" id="qtrust_system4-5" name="qtrust_system4" value="5" required="true"></label></td>
+                        </tr>
+
+                        <!-- System 5 -->
+                        <tr>
+                          <td style="text-align:left;">
+                            genAI tools run smoothly with no or minimal performance issues.
+                          </td>
+                          <td><label for="qtrust_system5-1"><input type="radio" id="qtrust_system5-1" name="qtrust_system5" value="1" required="true"></label></td>
+                          <td><label for="qtrust_system5-2"><input type="radio" id="qtrust_system5-2" name="qtrust_system5" value="2" required="true"></label></td>
+                          <td><label for="qtrust_system5-3"><input type="radio" id="qtrust_system5-3" name="qtrust_system5" value="3" required="true"></label></td>
+                          <td><label for="qtrust_system5-4"><input type="radio" id="qtrust_system5-4" name="qtrust_system5" value="4" required="true"></label></td>
+                          <td><label for="qtrust_system5-5"><input type="radio" id="qtrust_system5-5" name="qtrust_system5" value="5" required="true"></label></td>
+                        </tr>
+                    </table>
+                </fieldset>
+
+                <fieldset id="fieldset_question_expectations" class="container_radio_buttons">
+                    <table class="striped-columns border" style="width:100%">
+                    <p>Please rate how much you agree with each statement regarding your expectations with genAI (1 = Strongly Disagree, 5 = Strongly Agree)</p>
+                        <tbody>
+                            <tr>
+                            <th class="question"></th>
+                            <th>1</th>
+                            <th>2</th>
+                            <th>3</th>
+                            <th>4</th>
+                            <th>5</th>
+                          </tr>
+                        <!-- Expectations 1 -->
+                        <tr>
+                          <td style="text-align:left;">
+                            genAI's contributions match my expectations.
+                          </td>
+                          <td><label for="qtrust_expectations1-1"><input type="radio" id="qtrust_expectations1-1" name="qtrust_expectations1" value="1" required="true"></label></td>
+                          <td><label for="qtrust_expectations1-2"><input type="radio" id="qtrust_expectations1-2" name="qtrust_expectations1" value="2" required="true"></label></td>
+                          <td><label for="qtrust_expectations1-3"><input type="radio" id="qtrust_expectations1-3" name="qtrust_expectations1" value="3" required="true"></label></td>
+                          <td><label for="qtrust_expectations1-4"><input type="radio" id="qtrust_expectations1-4" name="qtrust_expectations1" value="4" required="true"></label></td>
+                          <td><label for="qtrust_expectations1-5"><input type="radio" id="qtrust_expectations1-5" name="qtrust_expectations1" value="5" required="true"></label></td>
+                        </tr>
+
+                        <!-- Expectations 2 -->
+                        <tr>
+                          <td style="text-align:left;">
+                            I can access genAI tool documentation to know more about it (e.g., licenses or data sources).
+                          </td>
+                          <td><label for="qtrust_expectations2-1"><input type="radio" id="qtrust_expectations2-1" name="qtrust_expectations2" value="1" required="true"></label></td>
+                          <td><label for="qtrust_expectations2-2"><input type="radio" id="qtrust_expectations2-2" name="qtrust_expectations2" value="2" required="true"></label></td>
+                          <td><label for="qtrust_expectations2-3"><input type="radio" id="qtrust_expectations2-3" name="qtrust_expectations2" value="3" required="true"></label></td>
+                          <td><label for="qtrust_expectations2-4"><input type="radio" id="qtrust_expectations2-4" name="qtrust_expectations2" value="4" required="true"></label></td>
+                          <td><label for="qtrust_expectations2-5"><input type="radio" id="qtrust_expectations2-5" name="qtrust_expectations2" value="5" required="true"></label></td>
+                        </tr>
+
+                        <!-- Expectations 3 -->
+                        <tr>
+                          <td style="text-align:left;">
+                            genAI's contributions match my style.
+                          </td>
+                          <td><label for="qtrust_expectations3-1"><input type="radio" id="qtrust_expectations3-1" name="qtrust_expectations3" value="1" required="true"></label></td>
+                          <td><label for="qtrust_expectations3-2"><input type="radio" id="qtrust_expectations3-2" name="qtrust_expectations3" value="2" required="true"></label></td>
+                          <td><label for="qtrust_expectations3-3"><input type="radio" id="qtrust_expectations3-3" name="qtrust_expectations3" value="3" required="true"></label></td>
+                          <td><label for="qtrust_expectations3-4"><input type="radio" id="qtrust_expectations3-4" name="qtrust_expectations3" value="4" required="true"></label></td>
+                          <td><label for="qtrust_expectations3-5"><input type="radio" id="qtrust_expectations3-5" name="qtrust_expectations3" value="5" required="true"></label></td>
+                        </tr>
+
+                        <!-- Expectations 4 -->
+                        <tr>
+                          <td style="text-align:left;">
+                            genAI's contributions match the goal, objectives, or scenario that I currently care about.
+                          </td>
+                          <td><label for="qtrust_expectations4-1"><input type="radio" id="qtrust_expectations4-1" name="qtrust_expectations4" value="1" required="true"></label></td>
+                          <td><label for="qtrust_expectations4-2"><input type="radio" id="qtrust_expectations4-2" name="qtrust_expectations4" value="2" required="true"></label></td>
+                          <td><label for="qtrust_expectations4-3"><input type="radio" id="qtrust_expectations4-3" name="qtrust_expectations4" value="3" required="true"></label></td>
+                          <td><label for="qtrust_expectations4-4"><input type="radio" id="qtrust_expectations4-4" name="qtrust_expectations4" value="4" required="true"></label></td>
+                          <td><label for="qtrust_expectations4-5"><input type="radio" id="qtrust_expectations4-5" name="qtrust_expectations4" value="5" required="true"></label></td>
+                        </tr>
+                    </table>
+                </fieldset>
+
+                <fieldset id="fieldset_question_interaction" class="container_radio_buttons">
+                    <table class="striped-columns border" style="width:100%">
+                    <p>Please rate how much you agree with each statement regarding your trust in genAI (1 = Strongly Disagree, 5 = Strongly Agree)</p>
+                        <tbody>
+                            <tr>
+                            <th class="question"></th>
+                            <th>1</th>
+                            <th>2</th>
+                            <th>3</th>
+                            <th>4</th>
+                            <th>5</th>
+                          </tr>
+                        <!-- TXAI 1 -->
+                        <tr>
+                          <td style="text-align:left;">
+                            I am confident in genAI tools. I feel that they work well.
+                          </td>
+                          <td><label for="qtrust_txai1-1"><input type="radio" id="qtrust_txai1-1" name="qtrust_txai1" value="1" required="true"></label></td>
+                          <td><label for="qtrust_txai1-2"><input type="radio" id="qtrust_txai1-2" name="qtrust_txai1" value="2" required="true"></label></td>
+                          <td><label for="qtrust_txai1-3"><input type="radio" id="qtrust_txai1-3" name="qtrust_txai1" value="3" required="true"></label></td>
+                          <td><label for="qtrust_txai1-4"><input type="radio" id="qtrust_txai1-4" name="qtrust_txai1" value="4" required="true"></label></td>
+                          <td><label for="qtrust_txai1-5"><input type="radio" id="qtrust_txai1-5" name="qtrust_txai1" value="5" required="true"></label></td>
+                        </tr>
+
+                        <!-- TXAI 2 -->
+                        <tr>
+                          <td style="text-align:left;">
+                            genAI tools are reliable. I can count on them to be correct for my use cases.
+                          </td>
+                          <td><label for="qtrust_txai2-1"><input type="radio" id="qtrust_txai2-1" name="qtrust_txai2" value="1" required="true"></label></td>
+                          <td><label for="qtrust_txai2-2"><input type="radio" id="qtrust_txai2-2" name="qtrust_txai2" value="2" required="true"></label></td>
+                          <td><label for="qtrust_txai2-3"><input type="radio" id="qtrust_txai2-3" name="qtrust_txai2" value="3" required="true"></label></td>
+                          <td><label for="qtrust_txai2-4"><input type="radio" id="qtrust_txai2-4" name="qtrust_txai2" value="4" required="true"></label></td>
+                          <td><label for="qtrust_txai2-5"><input type="radio" id="qtrust_txai2-5" name="qtrust_txai2" value="5" required="true"></label></td>
+                        </tr>
+
+                        <!-- TXAI 3 -->
+                        <tr>
+                          <td style="text-align:left;">
+                            I feel safe that when I rely on genAI, I will get the right answers.
+                          </td>
+                          <td><label for="qtrust_txai3-1"><input type="radio" id="qtrust_txai3-1" name="qtrust_txai3" value="1" required="true"></label></td>
+                          <td><label for="qtrust_txai3-2"><input type="radio" id="qtrust_txai3-2" name="qtrust_txai3" value="2" required="true"></label></td>
+                          <td><label for="qtrust_txai3-3"><input type="radio" id="qtrust_txai3-3" name="qtrust_txai3" value="3" required="true"></label></td>
+                          <td><label for="qtrust_txai3-4"><input type="radio" id="qtrust_txai3-4" name="qtrust_txai3" value="4" required="true"></label></td>
+                          <td><label for="qtrust_txai3-5"><input type="radio" id="qtrust_txai3-5" name="qtrust_txai3" value="5" required="true"></label></td>
+                        </tr>
+
+                        <!-- TXAI 4 -->
+                        <tr>
+                          <td style="text-align:left;">
+                            I like using genAI for decision making.
+                          </td>
+                          <td><label for="qtrust_txai4-1"><input type="radio" id="qtrust_txai4-1" name="qtrust_txai4" value="1" required="true"></label></td>
+                          <td><label for="qtrust_txai4-2"><input type="radio" id="qtrust_txai4-2" name="qtrust_txai4" value="2" required="true"></label></td>
+                          <td><label for="qtrust_txai4-3"><input type="radio" id="qtrust_txai4-3" name="qtrust_txai4" value="3" required="true"></label></td>
+                          <td><label for="qtrust_txai4-4"><input type="radio" id="qtrust_txai4-4" name="qtrust_txai4" value="4" required="true"></label></td>
+                          <td><label for="qtrust_txai4-5"><input type="radio" id="qtrust_txai4-5" name="qtrust_txai4" value="5" required="true"></label></td>
+                        </tr>
+
+
+                        </tbody>
+                      </table>
+                </fieldset>
+
+                <fieldset id="fieldset_ai_literacy" class="container_radio_buttons">
+                      <table class="striped-columns border" style="width:100%">
+                        <!-- Scale description -->
+                        <p>
+                          In the following, you will read descriptions of different abilities that one can have when dealing with artificial intelligence.
+                          These abilities can be more or less pronounced. Please rate yourself: <strong>How pronounced are your abilities?</strong>
+                          <br>
+                          A value of <strong>0</strong> means that an ability is not at all or hardly pronounced.
+                          A value of <strong>10</strong> means that an ability is very well or (almost) perfectly pronounced.
+                          <br>
+                          Please select the value that best describes your ability for each statement (0 = not at all, 10 = perfectly).
+                        </p>
+
+                        <tbody>
+                          <!-- Header row -->
+                          <tr>
+                            <th class="question"></th>
+                            <th>0</th><th>1</th><th>2</th><th>3</th><th>4</th>
+                            <th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th>
+                          </tr>
+
+                          <!-- Row template: Question 1 -->
+                          <tr>
+                            <td style="text-align:left;">
+                              I can tell if I am dealing with an application based on artificial intelligence.
+                            </td>
+                            <!-- Radio buttons 0-10 -->
+                            <td><label><input type="radio" id="mails_q1_0"  name="mails_q1" value="0"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q1_1"  name="mails_q1" value="1"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q1_2"  name="mails_q1" value="2"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q1_3"  name="mails_q1" value="3"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q1_4"  name="mails_q1" value="4"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q1_5"  name="mails_q1" value="5"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q1_6"  name="mails_q1" value="6"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q1_7"  name="mails_q1" value="7"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q1_8"  name="mails_q1" value="8"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q1_9"  name="mails_q1" value="9"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q1_10" name="mails_q1" value="10" required="true"></label></td>
+                          </tr>
+
+                          <!-- Question 2 -->
+                          <tr>
+                            <td style="text-align:left;">
+                              I can program new applications in the field of "artificial intelligence."
+                            </td>
+                            <!-- Radios 0-10 -->
+                            <td><label><input type="radio" id="mails_q2_0"  name="mails_q2" value="0"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q2_1"  name="mails_q2" value="1"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q2_2"  name="mails_q2" value="2"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q2_3"  name="mails_q2" value="3"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q2_4"  name="mails_q2" value="4"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q2_5"  name="mails_q2" value="5"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q2_6"  name="mails_q2" value="6"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q2_7"  name="mails_q2" value="7"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q2_8"  name="mails_q2" value="8"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q2_9"  name="mails_q2" value="9"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q2_10" name="mails_q2" value="10" required="true"></label></td>
+                          </tr>
+
+                          <!-- Question 3 -->
+                          <tr>
+                            <td style="text-align:left;">
+                              Although there are often new AI applications, I manage to always be "up-to-date."
+                            </td>
+                            <!-- Radios 0-10 -->
+                            <td><label><input type="radio" id="mails_q3_0"  name="mails_q3" value="0"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q3_1"  name="mails_q3" value="1"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q3_2"  name="mails_q3" value="2"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q3_3"  name="mails_q3" value="3"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q3_4"  name="mails_q3" value="4"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q3_5"  name="mails_q3" value="5"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q3_6"  name="mails_q3" value="6"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q3_7"  name="mails_q3" value="7"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q3_8"  name="mails_q3" value="8"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q3_9"  name="mails_q3" value="9"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q3_10" name="mails_q3" value="10" required="true"></label></td>
+                          </tr>
+
+                          <!-- Question 4 -->
+                          <tr>
+                            <td style="text-align:left;">
+                              I can handle it when interactions with AI frustrate or frighten me.
+                            </td>
+                            <!-- Radios 0-10 -->
+                            <td><label><input type="radio" id="mails_q4_0"  name="mails_q4" value="0"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q4_1"  name="mails_q4" value="1"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q4_2"  name="mails_q4" value="2"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q4_3"  name="mails_q4" value="3"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q4_4"  name="mails_q4" value="4"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q4_5"  name="mails_q4" value="5"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q4_6"  name="mails_q4" value="6"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q4_7"  name="mails_q4" value="7"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q4_8"  name="mails_q4" value="8"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q4_9"  name="mails_q4" value="9"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q4_10" name="mails_q4" value="10" required="true"></label></td>
+                          </tr>
+
+                          <!-- Question 5 -->
+                          <tr>
+                            <td style="text-align:left;">
+                              I can weigh the consequences of using AI for society.
+                            </td>
+                            <!-- Radios 0-10 -->
+                            <td><label><input type="radio" id="mails_q5_0"  name="mails_q5" value="0"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q5_1"  name="mails_q5" value="1"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q5_2"  name="mails_q5" value="2"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q5_3"  name="mails_q5" value="3"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q5_4"  name="mails_q5" value="4"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q5_5"  name="mails_q5" value="5"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q5_6"  name="mails_q5" value="6"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q5_7"  name="mails_q5" value="7"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q5_8"  name="mails_q5" value="8"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q5_9"  name="mails_q5" value="9"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q5_10" name="mails_q5" value="10" required="true"></label></td>
+                          </tr>
+
+                          <!-- Question 6 -->
+                          <tr>
+                            <td style="text-align:left;">
+                              I can design new AI applications.
+                            </td>
+                            <!-- Radios 0-10 -->
+                            <td><label><input type="radio" id="mails_q6_0"  name="mails_q6" value="0"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q6_1"  name="mails_q6" value="1"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q6_2"  name="mails_q6" value="2"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q6_3"  name="mails_q6" value="3"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q6_4"  name="mails_q6" value="4"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q6_5"  name="mails_q6" value="5"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q6_6"  name="mails_q6" value="6"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q6_7"  name="mails_q6" value="7"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q6_8"  name="mails_q6" value="8"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q6_9"  name="mails_q6" value="9"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q6_10" name="mails_q6" value="10" required="true"></label></td>
+                          </tr>
+
+                          <!-- Question 7 -->
+                          <tr>
+                            <td style="text-align:left;">
+                              I can use artificial intelligence meaningfully to achieve my goals.
+                            </td>
+                            <!-- Radios 0-10 -->
+                            <td><label><input type="radio" id="mails_q7_0"  name="mails_q7" value="0"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q7_1"  name="mails_q7" value="1"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q7_2"  name="mails_q7" value="2"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q7_3"  name="mails_q7" value="3"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q7_4"  name="mails_q7" value="4"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q7_5"  name="mails_q7" value="5"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q7_6"  name="mails_q7" value="6"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q7_7"  name="mails_q7" value="7"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q7_8"  name="mails_q7" value="8"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q7_9"  name="mails_q7" value="9"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q7_10" name="mails_q7" value="10" required="true"></label></td>
+                          </tr>
+
+                          <!-- Question 8 -->
+                          <tr>
+                            <td style="text-align:left;">
+                              I can also usually solve strenuous and complicated tasks when working with artificial intelligence well.
+                            </td>
+                            <!-- Radios 0-10 -->
+                            <td><label><input type="radio" id="mails_q8_0"  name="mails_q8" value="0"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q8_1"  name="mails_q8" value="1"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q8_2"  name="mails_q8" value="2"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q8_3"  name="mails_q8" value="3"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q8_4"  name="mails_q8" value="4"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q8_5"  name="mails_q8" value="5"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q8_6"  name="mails_q8" value="6"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q8_7"  name="mails_q8" value="7"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q8_8"  name="mails_q8" value="8"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q8_9"  name="mails_q8" value="9"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q8_10" name="mails_q8" value="10" required="true"></label></td>
+                          </tr>
+
+                          <!-- Question 9 -->
+                          <tr>
+                            <td style="text-align:left;">
+                              I can prevent an AI from influencing me in my decisions.
+                            </td>
+                            <!-- Radios 0-10 -->
+                            <td><label><input type="radio" id="mails_q9_0"  name="mails_q9" value="0"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q9_1"  name="mails_q9" value="1"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q9_2"  name="mails_q9" value="2"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q9_3"  name="mails_q9" value="3"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q9_4"  name="mails_q9" value="4"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q9_5"  name="mails_q9" value="5"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q9_6"  name="mails_q9" value="6"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q9_7"  name="mails_q9" value="7"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q9_8"  name="mails_q9" value="8"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q9_9"  name="mails_q9" value="9"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q9_10" name="mails_q9" value="10" required="true"></label></td>
+                          </tr>
+
+                          <!-- Question 10 -->
+                          <tr>
+                            <td style="text-align:left;">
+                              I can assess what advantages and disadvantages the use of an artificial intelligence entails.
+                            </td>
+                            <!-- Radios 0-10 -->
+                            <td><label><input type="radio" id="mails_q10_0"  name="mails_q10" value="0"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q10_1"  name="mails_q10" value="1"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q10_2"  name="mails_q10" value="2"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q10_3"  name="mails_q10" value="3"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q10_4"  name="mails_q10" value="4"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q10_5"  name="mails_q10" value="5"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q10_6"  name="mails_q10" value="6"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q10_7"  name="mails_q10" value="7"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q10_8"  name="mails_q10" value="8"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q10_9"  name="mails_q10" value="9"  required="true"></label></td>
+                            <td><label><input type="radio" id="mails_q10_10" name="mails_q10" value="10" required="true"></label></td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </fieldset>
+
+                <br>
+                
+                <button type="submit" id="submitter" class="button blue">Next</button>
+            </form>
+            
+        </section>
+    </body>
+</html>

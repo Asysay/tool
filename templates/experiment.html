@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{title}}</title>
+   	<!-- Requires jQuery -->
+	<script src="{{ url_for('static', filename='js/jquery.min.js')}}" type="text/javascript"></script>
+
+    <!-- Requires CodeMirror -->
+    <script src="{{ url_for('static', filename='js/codemirror.js')}}" type="text/javascript"></script>
+    <script src="{{ url_for('static', filename='mode/clike/clike.js')}}" type="text/javascript"></script>
+
+    <link rel="stylesheet" media="all" href="{{ url_for('static', filename='css/codemirror.css')}}" />
+
+    <!-- Requires Mergely -->
+    <script src="{{ url_for('static', filename='js/mergely.js')}}" type="text/javascript"></script>
+    <link rel="stylesheet" media="all" href="{{ url_for('static', filename='css/mergely.css')}}" />
+
+    <link rel="stylesheet" media="all" href="{{ url_for('static', filename='css/style.css')}}" />
+
+    <!-- Script for diff production -->
+    <script src="{{ url_for('static', filename='js/experiment.js')}}" type="text/javascript"></script>
+    <style>
+        .lint-error {font-family: arial; font-size: 80%; background: #fcfa96; color: #a00; padding: 2px 5px 3px; border: 1px solid black;}
+        .lint-error-icon {color: white; background-color: red; font-weight: bold; border-radius: 50%; padding: 0 3px; margin-right: 7px;}
+    </style>
+   <style>
+      .rsme-question{
+          margin:0 0 .5rem 0;
+          font-weight:600;
+      }
+      .rsme-wrapper{
+          display:flex;
+          align-items:center;     /* slider & labels side-by-side */
+          gap:.75rem;
+      }
+      /* vertical slider */
+      .rsme-slider{
+          /* 150 mm -> ≈567 px (150 mm × 3.78 px/mm) */
+          height:567px;
+          width:1.4rem;
+          direction: rtl;
+          writing-mode:bt-lr;               /* Firefox */
+          -webkit-appearance:slider-vertical;/* Chrome/Safari */
+      }
+      .rsme-labels{
+          display: flex;
+          list-style:none;
+          padding:0;
+          margin:0;
+          font-size:.9rem;
+          line-height:1.2;
+          user-select:none;
+          flex-direction: column-reverse;
+      }
+      .rsme-labels li{
+          position:relative;
+          height: calc(567px / 15 * 2); /* crude spacing that matches ~10 mm ticks */
+          display:flex;
+          align-items:center;
+      }
+      /* optional tick mark */
+      .rsme-labels li::before{
+          content:"";
+          width:.6rem;
+          height:2px;
+          background:#555;
+          margin-right:.3rem;
+      }
+    </style>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            logData("pageLoaded", "pageLoaded");
+
+            //size of screen
+            logData("screen height", window.screen.height);
+            logData("screen width", window.screen.width);
+
+            // Size of browser viewport.
+            logData("window height", $(window).height());
+            logData("window width", $(window).width());
+
+            // Size of HTML document (same as pageHeight/pageWidth in screenshot).
+            logData("html document height", $(document).height());
+            logData("html document width", $(document).width());
+
+            $("#button-continue").click(function(){
+                $("#div-mergely").show();
+                $("#button-continue").hide();
+
+                logData("read_instructions", "read_instructions");
+                var width = $(window).width() - 50;
+                {% for code in codes %}
+                    initMergely('#compare{{code["id"]}}',
+                        parseInt('{{code["linecount"]}}') * 18.5 + 17,
+                        parseInt('{{code["contextLineCount"]}}') * 18.5,
+                        width,
+                        parseInt('{{code["left_line_number"]}}'),
+                        '{{code["left_content"] | safe}}',
+                        parseInt('{{code["right_line_number"]}}'),
+                        '{{code["right_content"] | safe}}',
+                        '{{code["prefix_line_count"]}}',
+                        '{{code["prefix_escaped"]}}',
+                        '{{code["suffix_escaped"]}}');
+                {% endfor %}
+
+                if ('{{ is_primed }}' == 'True'){
+                    var instance = $("#compare0").mergely('cm', 'rhs');
+                    var msg = document.createElement("div");
+                    var icon = msg.appendChild(document.createElement("span"));
+                    icon.innerHTML = "!!";
+                    icon.className = "lint-error-icon";
+                }
+
+                var editors = [];
+                var name = "#compare";
+                var compareName = "compare";
+                for(let i = 0; i < 5; i++) {
+                    var hunkName = name + i;
+                    var editor = $(hunkName).mergely('cm', 'rhs');
+                    editors[i] = editor;
+
+                    var compareSpecificName = compareName + i;
+                    var internalBar = document.getElementById(compareSpecificName).getElementsByClassName("CodeMirror-vscrollbar");
+                    internalBar[1].onscroll = function (ev) {
+                        recomputeLinesScroll(i);
+                        scrollHandler();
+                    };
+                }
+                setEditors(editors);
+                computeLinesInHunk("none", 0);
+                logData('visibleHunks', determineVisibleHunks());
+	            logData('visibleLines', determineVisibleLines());
+
+            });
+
+            // Window scroller
+            window.onscroll = function (ev) {scrollHandler()};
+            window.addEventListener('resize', recomputeLinesScroll(-1));
+
+            var ctrl = false;
+            document.addEventListener("keydown", function(e) {
+                if(e.which == 17 || e.which == 224 || e.which == 91) {
+                    ctrl = true
+                }
+                if(e.which == 70 && ctrl == true){
+                    logData("button", "ctrl+F")
+                }
+            }, true);
+
+            document.addEventListener("keyup", function(e) {
+                if(e.which == 17 || e.which == 224 || e.which == 91) {
+                    ctrl = false;
+                }
+            });
+        });
+
+        /**
+        * Check if the user really wants to complete the review
+        */
+        function validateReview() {
+	    if (confirm('Do you want to complete the review?')) {
+		    showquestions();
+	        }
+        }
+
+        function showquestions(){
+            logData("end_cr_experiment", "clickshowquestions");
+            disableRemarks();
+            disableScrollRecording();
+            $("#review-completed").hide();
+            $("#id01").hide();
+            $("#final-questions").show();
+        }
+
+        function shownextquestion(){
+            $("#final-questions").hide();
+            $("#continue-question").show();
+        }
+    </script>
+    <style>
+        li {
+            padding-bottom: 10px;
+        }
+    </style>
+
+<style>
+  html, body { margin:0; height:100%; font-family: system-ui, sans-serif; }
+
+  /* Sidebar fixed on the left, 30% width */
+  #chat-sidebar{
+    position: fixed; left:0; top:0; bottom:0;
+    width:30vw; max-width:400px;
+    background:#f9f9f9; border-right:1px solid #ddd;
+    display:flex; flex-direction:column; z-index:1000;
+  }
+body {
+      /* Push the main page content to the right to make room for the sidebar */
+      margin-left: 30%;
+      transition: margin-left 0.3s ease;
+      box-sizing: border-box;
+    }
+
+  header#chat-title{
+    padding:10px 12px; border-bottom:1px solid #ddd;
+    font-size:1.05rem; font-weight:600;
+  }
+
+  #chat-messages{ flex:1; overflow-y:auto; padding:14px 10px; }
+  .message{ display:flex; margin-bottom:12px; }
+  .message.user1{ justify-content:flex-end; }
+  .message.bot1 { justify-content:flex-start; }
+  .bubble{
+    max-width:70%; padding:8px 10px; border-radius:8px;
+    word-wrap:anywhere; line-height:1.35;
+    box-shadow:0 0 0 1px rgba(0,0,0,.04);
+  }
+  .user1 .bubble{ background:#DCF8C6; }
+  .bot1  .bubble{ background:#eee; color:#111; }
+  .bubble img{ max-width:100%; border-radius:6px; display:block; }
+
+  #chat-input-area{
+    display:flex; align-items:center; gap:6px;
+    padding:8px; border-top:1px solid #ddd; background:#fff;
+  }
+  .square-btn{
+    width:40px; height:40px; border:none; color:#fff; background:#007aff;
+    border-radius:4px; cursor:pointer; font-size:19px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .square-btn:disabled{ opacity:.5; cursor:not-allowed; }
+  #text-input{
+    flex:1; padding:8px; border:1px solid #ccc; border-radius:4px;
+  }
+
+  /* Optional mobile mode: sidebar at top */
+  @media (max-width:800px){
+    #chat-sidebar{ width:100%; height:38%; max-width:none; bottom:auto; }
+    main{ margin-left:0; margin-top:38%; }
+  }
+</style>
+ 
+</head>
+<style>
+    #mergely-splash { display: none !important;}
+</style>
+<body>
+    <div>
+        <p><h1>Review Task</h1></p>
+        <p>We are now going to show you the code changes to review.</p>
+        <p>Please take the review task <strong>very seriously</strong> (this is critical for the scientific validity of this experiment).</p>
+
+        <h3>Information</h3>
+        <ul>
+            <li>The old version of the code is on the left, the new version is on the right.</li>
+            <li><strong>Review comments</strong></li>
+            <ul>
+                <li>To <strong>add</strong> a review comment, click on the corresponding line number.</li>
+                <li>To <strong>modify/delete</strong> a review comment, click on the corresponding line number again and modify/delete the comment's text</li>
+            </ul>
+            <li><strong>Usage of genAI</strong></li>
+            <ul>
+                <li>When you click a button in the top middle of the screen with the dialogue icon, a window with <strong>ChatGPT</strong> (model GPT-4o) will appear on your left</li>
+                <li>You are encouraged to use it as you see fit. Please do <strong>NOT</strong> use your own genAI for this experiment.</li>
+                <li>The prompts you make will be recorded for analysis. Please be noted.</li>
+            </ul>
+            <li>Once you confirm to conclude the review, it will not be possible to add, delete, or modify the remarks anymore.</li>
+            <li><strong>Please do not reload the page under any circumstances lest the experiment will be rendered incomplete!</strong></li>
+        </ul>
+
+    </div>
+    <div>
+        <form method="get" id="button-continue">
+            <button type="button" class="button blue" style="height: 50px;">I have read the text above and I want to start the review ►</button><br><br>
+        </form>
+    </div>
+    <div class="mergely-full-screen-8" style="overflow-y: scroll; display: none" id="div-mergely">
+        <div class="mergely-resizer">
+            {% for code in codes %}
+                <table width="100%">
+                    <tbody>
+                        <tr>
+                            <td width="50%" style="font-size:15px;">{{ code['filename'] }}</td>
+                            <td style="font-size:15px;">{{ code['filename'] }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div id="compare{{code['id']}}" class="hunk"></div><br/>
+            {% endfor %}
+        </div>
+
+        <div style="clear: both;">
+            <button id="review-completed" onclick="document.getElementById('id01').style.display='block'" class="button blue" style="height: 50px;">I have completed my review</button>
+        </div>
+
+        <div style="clear: both; display: none" id="final-questions">
+                <!-- "diff_data" is a fieldset with a textarea inside containing JSON formatted log data. Doing this
+                we do not need to manipulate data in a submission function due Flask post request mechanics-->
+            <form action="{{ url_for('run_experiment') }}" method="post">
+                <fieldset id="diff_data" hidden style="display: none">
+                    <textarea name="hidden_log" id="hidden_log"></textarea>
+                </fieldset>
+                {{ md_body|safe }}
+                <br>
+                <fieldset id="fieldset_question_5" class="container_radio_buttons">
+                    <p>How long have you been interrupted during the execution of the review?</p>
+                    <label><input type="radio" name="question_interruption_time" id="question_interruption_time_a0" value="0" class="option-input radio" required>No interruption time</label><br>
+                    <label><input type="radio" name="question_interruption_time" id="question_interruption_time_a1" value="1" class="option-input radio">1-2 minutes</label><br>
+                    <label><input type="radio" name="question_interruption_time" id="question_interruption_time_a2" value="2" class="option-input radio">up to 5 minutes</label><br>
+                    <label><input type="radio" name="question_interruption_time" id="question_interruption_time_a3" value="3" class="option-input radio">up to 10 minutes</label><br>
+                    <label><input type="radio" name="question_interruption_time" id="question_interruption_time_a4" value="4" class="option-input radio">more than 10 minutes</label><br>
+                </fieldset>
+                <br>
+  <div id="mental-effort-block">
+  <p class="rsme-question">
+    How much mental effort did the task require?
+  </p>
+     <div class="rsme-wrapper">
+      <!-- the 150-mm, 0-to-150 slider -->
+      <input type="range"
+             name="RSME_task_1"
+             id="rsme"
+             class="rsme-slider"
+             min="0" max="150" step="1" value="75"
+             orient="vertical"  />
+
+      <!-- anchor labels -->
+      <ul class="rsme-labels">
+        <li data-value="0">No effort at all</li>
+        <li data-value="10">Almost no effort</li>
+        <li data-value="20">Very little effort</li>
+        <li data-value="30">Small effort</li>
+        <li data-value="50">Considerable effort</li>
+        <li data-value="80">Very large effort</li>
+        <li data-value="110">Extremely large effort</li>
+      </ul>
+    </div>
+  </div>
+  <button type="submit" id="submitter" class="button blue">Next ►</button>
+
+            </form>
+        </div>
+
+    <div id="id01" class="modal">
+
+        <form class="modal-content animate">
+            <div class="imgcontainer">
+                <span onclick="document.getElementById('id01').style.display='none'" class="close" title="Close">&times;</span>
+            </div>
+
+            <div class="container-popup">
+                <p> Do you want to complete the review? </p>
+
+                <br>
+
+                <div class="btn-group" style="text-align: center;">
+                    <button type="button" onclick="document.getElementById('id01').style.display='none'" class="button-popup blue">No</button>
+                    <button type="button" onclick="showquestions();" class="button-popup blue">Yes</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div id="remark-popup-window" class="modal">
+
+        <form class="modal-content animate" onkeypress="return event.keyCode != 13">
+            <div class="imgcontainer">
+                <span onclick="document.getElementById('remark-popup-window').style.display='none'" class="close" title="Close">&times;</span>
+            </div>
+
+            <div class="container-popup">
+                <label><b>Please enter review remark:</b></label>
+                <input type="text" placeholder="Remark" name="remark" onkeypress="return runScript(event)" id="review-remark" required>
+
+                <br>
+
+                <div class="btn-group" style="text-align: center;">
+                    <button type="button" onclick="document.getElementById('remark-popup-window').style.display='none'" class="button-popup blue">Cancel</button>
+                    <button type="button" onclick="document.getElementById('remark-popup-window').style.display='none'; recordRemark();" class="button-popup blue">Ok</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function runScript(e) {
+            if (e.keyCode == 13 && areRemarksEnabled()) {
+                document.getElementById('remark-popup-window').style.display='none';
+                recordRemark();
+            }
+        }
+    </script>
+
+    <style type="text/css">
+        #dialog {
+            width:      200px;
+            margin:     auto;
+            padding:    10px;
+            border:     thin solid black;
+            background: lightgreen;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+
+<aside id="chat-sidebar">
+  <header id="chat-title">AI Chat</header>
+
+  <div id="chat-messages" aria-live="polite"></div>
+
+  <div id="chat-input-area">
+    <button id="send-text" class="square-btn" title="Send text" aria-label="Send text">➤</button>
+    <input id="text-input" type="text" placeholder="Type a message…" autocomplete="off" />
+    <input id="image-input" type="file" accept="image/*" style="display:none">
+    <button id="send-image" class="square-btn" title="Send image" aria-label="Send image">🖼️</button>
+  </div>
+</aside>
+
+<script>
+/* =======================
+   Config
+======================= */
+const SYSTEM_PROMPT = "You are ChatGPT, a helpful assistant.";
+const CHAT_ENDPOINT = "/chat-api";     // Replace with your backend route
+const USE_SERVER_LOG = true;
+
+const SESSION_KEY = "chatSessionId";
+
+/* Only these actions render as bubbles; others are logged only */
+const RENDERABLE = new Set(["user_text1","user_image1","ai_text1","ai_image1"]);
+const ACTION_TO_VIEW = {
+  user_text1: { role:"user1", isImage:false },
+  user_image1:{ role:"user1", isImage:true  },
+  ai_text1:   { role:"bot1",  isImage:false },
+  ai_image1:  { role:"bot1",  isImage:true  },
+};
+
+const chatArea    = document.getElementById("chat-messages");
+const textInput   = document.getElementById("text-input");
+const sendTextBtn = document.getElementById("send-text");
+const sendImgBtn  = document.getElementById("send-image");
+const imageInput  = document.getElementById("image-input");
+
+let chatLogFull = [];   // all records (including analytics)
+let chatLog     = [];   // only renderable records, roles are "user1"/"bot1"
+
+/* Session id */
+let sessionId = localStorage.getItem(SESSION_KEY);
+if(!sessionId){
+  sessionId = (crypto.randomUUID ? crypto.randomUUID() :
+               Math.random().toString(36).slice(2) + Date.now());
+  localStorage.setItem(SESSION_KEY, sessionId);
+}
+
+function scrollToEnd(){ chatArea.scrollTop = chatArea.scrollHeight; }
+
+function addBubble(role, content, isImage=false){
+  const wrap = document.createElement("div");
+  wrap.className = `message ${role}`;
+  const bubble = document.createElement("div");
+  bubble.className = "bubble";
+
+  if(isImage){
+    const img = new Image();
+    img.src = content; img.alt = "sent image";
+    bubble.appendChild(img);
+  }else{
+    bubble.textContent = content;
+  }
+  wrap.appendChild(bubble);
+  chatArea.appendChild(wrap);
+  scrollToEnd();
+}
+
+/* =========
+   Logging – ALWAYS call provided logData(action, data)
+=========== */
+function logLine(action, data){
+  logData(action, data); // uses existing function from your app
+  chatLogFull.push({ ts: Date.now(), action, data, sessionId });
+}
+
+/* Short hash helper for logging images without full base64 */
+async function sha256Hex(str){
+  const buf = new TextEncoder().encode(str);
+  const digest = await crypto.subtle.digest("SHA-256", buf);
+  return [...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+
+/* Send text */
+async function handleTextSend(){
+  const text = textInput.value.trim();
+  if(!text) return;
+
+  textInput.value = "";
+  addBubble("user1", text);
+  chatLog.push({ time: Date.now(), role:"user1", content: text, isImage:false });
+
+  logLine("user_text1", text);
+
+  queryAI({ text });
+}
+
+/* Send image */
+function handleImageFile(file){
+  const reader = new FileReader();
+  reader.onload = async () => {
+    const imgData = reader.result;
+    addBubble("user1", imgData, true);
+    chatLog.push({ time: Date.now(), role:"user1", content: imgData, isImage:true });
+
+    let hash = "n/a";
+    try{ hash = await sha256Hex(imgData); }catch(_){}
+    logLine("user_image1", `sha256:${hash};bytes:${imgData.length}`);
+
+    queryAI({ image: imgData });
+  };
+  reader.readAsDataURL(file);
+}
+
+/* Talk to backend */
+async function queryAI({ text=null, image=null }){
+  const payload = {
+    system_prompt: SYSTEM_PROMPT,
+    sessionId,
+    history: chatLog,      // roles are "user1"/"bot1"
+    new_user_text1: text,
+    new_user_image1: image
+  };
+
+  logLine("request_dispatch", JSON.stringify({ hasText: !!text, hasImage: !!image }));
+
+  setSending(true);
+
+  try{
+    const res = await fetch(CHAT_ENDPOINT, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify(payload)
+    });
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    const data = await res.json();
+
+    if(data.type === "image"){
+      addBubble("bot1", data.content, true);
+      chatLog.push({ time: Date.now(), role:"bot1", content:data.content, isImage:true });
+      logLine("ai_image1", data.content);
+    }else{
+      addBubble("bot1", data.content, false);
+      chatLog.push({ time: Date.now(), role:"bot1", content:data.content, isImage:false });
+      logLine("ai_text1", data.content);
+    }
+  }catch(err){
+    addBubble("bot1", "⚠️ Error contacting server.");
+    logLine("error", String(err));
+    console.error(err);
+  }finally{
+    setSending(false);
+  }
+}
+
+function setSending(b){
+  sendTextBtn.disabled = b;
+  sendImgBtn.disabled  = b;
+  textInput.disabled   = b;
+}
+
+/* Wire events & boot */
+sendTextBtn.addEventListener("click", handleTextSend);
+textInput.addEventListener("keydown", e => { if(e.key === "Enter") handleTextSend(); });
+
+sendImgBtn.addEventListener("click", () => imageInput.click());
+imageInput.addEventListener("change", () => {
+  if(imageInput.files && imageInput.files[0]) handleImageFile(imageInput.files[0]);
+});
+</script>
+
+</body>
+</html>

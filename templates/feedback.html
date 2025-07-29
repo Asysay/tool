@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{title}}</title>
+   	<!-- Requires jQuery -->
+	<script src="{{ url_for('static', filename='js/jquery.min.js')}}" type="text/javascript"></script>
+
+    <link rel="stylesheet" media="all" href="{{ url_for('static', filename='css/style.css')}}" />
+</head>
+<body>
+<section class="content">
+    <p><h1>Final Feedback</h1></p>
+
+    <p>Thank you for taking part in our experiment. Our goal was to understand if the position of a file in a review change-set influences the amount of attention paid to it while genAI is available and accessible.<br>
+        Please do <strong>not</strong> share this information or information on the defects in the review with people who have not participated in the experiment.<br></p>
+
+    <form action="conclusion" method="post" id="current_form">
+        <fieldset id="fieldset_question_feedback1" class="container_radio_buttons"><p>If you have any comments on the experiment, please add them here:</p>
+            <label><textarea id="qfeedback1" name="question_feedback1"></textarea></label>
+        </fieldset>
+
+        <fieldset id="fieldset_question_feedback4" class="container_radio_buttons"><p>All your data is anonymous. In addition to analysing it, may we also share it in a public research dataset?</p>
+            <label><input type="radio" name="question_feedback41" id="qfeedback41" value="0" class="option-input radio" required="true">Yes</label><br>
+            <label><input type="radio" name="question_feedback41" id="qfeedback42" value="1" class="option-input radio" required="true">No</label><br>
+        </fieldset>
+
+        <fieldset id="fieldset_question_feedback2" class="container_radio_buttons"><p>If you would like to receive the results of this study, please leave your email here. <br>
+            <small>Results are used anonymously. Your email will never be shared with anyone and you will not receive any other emails than the results of this study. After we email the study results to you, we will delete your email.</small></p>
+            <label><textarea id="qfeedback2" name="question_feedback2" style="height: 50px"></textarea></label>
+        </fieldset>
+
+        <fieldset id="fieldset_question_feedback3" class="container_radio_buttons"><p>If you would like to be interviewed in the context of this study, please leave your email here. <br>
+            <small>Results are used anonymously. Your email will never be shared with anyone and you will not receive any other emails than the ones related to this study. After the interview is complete, we will delete your email.</small></p>
+            <label><textarea id="qfeedback3" name="question_feedback3" style="height: 50px"></textarea></label>
+        </fieldset>
+
+        <button type="submit" id="submitter" class="button blue">Complete</button>
+    </form>
+
+</section>
+</body>
+</html>

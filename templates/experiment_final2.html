@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{title}}</title>
+       <!-- Requires jQuery -->
+    <script src="{{ url_for('static', filename='js/jquery.min.js')}}" type="text/javascript"></script>
+
+    <!-- Requires CodeMirror -->
+    <script src="{{ url_for('static', filename='js/codemirror.js')}}" type="text/javascript"></script>
+    <script src="{{ url_for('static', filename='mode/clike/clike.js')}}" type="text/javascript"></script>
+
+    <link rel="stylesheet" media="all" href="{{ url_for('static', filename='css/codemirror.css')}}" />
+
+    <!-- Requires Mergely -->
+    <script src="{{ url_for('static', filename='js/mergely.js')}}" type="text/javascript"></script>
+    <link rel="stylesheet" media="all" href="{{ url_for('static', filename='css/mergely.css')}}" />
+
+    <link rel="stylesheet" media="all" href="{{ url_for('static', filename='css/style.css')}}" />
+
+    <!-- Script for diff production -->
+    <script src="{{ url_for('static', filename='js/experiment-final.js')}}" type="text/javascript"></script>
+    <style>
+        .lint-error {font-family: arial; font-size: 80%; background: #fcfa96; color: #a00; padding: 2px 5px 3px; border: 1px solid black;}
+        .lint-error-icon {color: white; background-color: red; font-weight: bold; border-radius: 50%; padding: 0 3px; margin-right: 7px;}
+    </style>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            if ('{{ is_primed }}' == 'True') {
+                $("#prev-reviewer-comment").show()
+            }
+
+            logData("pageLoaded", "pageLoaded")
+
+            $("#div-mergely").show();
+            $("#button-edit").hide();
+            logData("read_instructions", "read_instructions");
+            var width = $(window).width() - 50;
+            {% for code in codes %}
+                initMergely('#compare{{code["id"]}}',
+                    parseInt('{{code["linecount"]}}') * 18.5 + 17,
+                    parseInt('{{code["contextLineCount"]}}') * 18.5,
+                    width,
+                    parseInt('{{code["left_line_number"]}}'),
+                    '{{code["left_content"] | safe}}',
+                    parseInt('{{code["right_line_number"]}}'),
+                    '{{code["right_content"] | safe}}',
+                    '{{code["prefix_line_count"]}}',
+                    '{{code["prefix_escaped"]}}',
+                    '{{code["suffix_escaped"]}}');
+            {% endfor %}
+
+            // shows solution
+            var instance = null;
+            var controlInstance = null;
+            var first = null;
+
+            //if treatment is bug first, select first file
+            if ('{{ treatment }}' === 'files_experiment2_bf') {
+                instance = $("#compare0").mergely('cm', 'rhs');
+                controlInstance = $("#compare4").mergely('cm', 'rhs');
+                first = true;
+            } else {
+                //if treatment is bug last, select last file
+                instance = $("#compare4").mergely('cm', 'rhs');
+                controlInstance = $("#compare0").mergely('cm', 'rhs');
+                first = false;
+            }
+            var msg = document.createElement("div");
+            var icon = msg.appendChild(document.createElement("span"));
+            icon.innerHTML = "!!";
+            icon.className = "lint-error-icon";
+            var name = msg.appendChild(document.createElement("span"))
+            msg.className = "lint-error";
+            name.innerHTML = "<b>SOE: Stack Overflow Error: </b>";
+            msg.appendChild(document.createTextNode("Here the method recursively calls itself until depth reaches 0, but depth-- uses the current value instead of depth - 1. This causes a Stack Overflow Error as infinite recursion happens."));
+            instance.addLineWidget(118, msg, {coverGutter: true, noHScroll: true});
+
+            //Display control bug
+
+            var controlMsg = document.createElement("div");
+            var controlIcon = controlMsg.appendChild(document.createElement("span"));
+            controlIcon.innerHTML = "!!";
+            controlIcon.className = "lint-error-icon";
+            var controlName = controlMsg.appendChild(document.createElement("span"))
+            controlMsg.className = "lint-error";
+            controlName.innerHTML = "<b>NPE: Null Pointer Exception: </b>";
+            controlMsg.appendChild(document.createTextNode("Here a check for a null pointer for dst is missing. This will cause the program to crash in the subsequent lines if dst is a null pointer."));
+            controlInstance.addLineWidget(29, controlMsg, {coverGutter: true, noHScroll: true});
+
+            if (!first) {
+                const question = document.getElementById("first_questions");
+                const mb_question = document.getElementById("fieldset_question_3");
+                const mb_question_yes = document.getElementById("fieldset_question_4");
+                const mb_question_no = document.getElementById("fieldset_question_5");
+                const cc_question = document.getElementById("fieldset_question_0");
+                const cc_question_yes = document.getElementById("fieldset_question_1");
+                const cc_question_no = document.getElementById("fieldset_question_2");
+                const button_one = document.getElementById("submitter_one");
+                question.appendChild(mb_question);
+                question.appendChild(mb_question_yes);
+                question.appendChild(mb_question_no);
+                question.appendChild(cc_question);
+                question.appendChild(cc_question_yes);
+                question.appendChild(cc_question_no);
+                question.appendChild(button_one);
+
+                const final_questions = document.getElementById("final_questions");
+                const cc_question_final = document.getElementById("fieldset_question_pos_1");
+                const mb_question_final = document.getElementById("fieldset_question_pos_2");
+                const button_two = document.getElementById("submitter");
+                final_questions.appendChild(mb_question_final);
+                final_questions.appendChild(cc_question_final);
+                final_questions.appendChild(button_two);
+            }
+
+            document.getElementById("fieldset_question_3").setAttribute("style", "display: block;");
+            document.getElementById("fieldset_question_0").setAttribute("style", "display: block;");
+        });
+
+        var question_bug_3 = false;
+        var question_bug_4 = false;
+
+        function showNextQuestions() {
+            if((document.getElementById("bug_3_yes").checked || document.getElementById("bug_3_no").checked)
+                && (document.getElementById("bug_4_yes").checked || document.getElementById("bug_4_no").checked)) {
+                document.getElementById("first_questions").setAttribute("style", "display:none");
+                document.getElementById("final_questions").setAttribute("style", "display:block");
+                document.getElementById("q1a0_order").required = true;
+                document.getElementById("q2a0_order").required = true;
+            }
+            else {
+                var form = document.querySelector('form');
+                form.reportValidity();
+            }
+        }
+
+
+    </script>
+</head>
+<style>
+    #mergely-splash { display: none !important;}
+</style>
+<body>
+    
+    <div class="mergely-full-screen-8" style="overflow-y: scroll; display: none" id="div-mergely">
+        <div class="mergely-resizer">
+                {% for code in codes %}
+                <table width="70%">
+                    <tbody>
+                        <tr>
+                            <td width="50%" style="font-size:15px;">{{ code['filename'] }}</td>
+                            <td style="font-size:15px;">{{ code['filename'] }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div id="compare{{code['id']}}" class="hunk"></div><br/>
+            {% endfor %}
+        </div>
+
+     <form action="trust_questions" method="post" id="current_form" >
+        <div id="first_questions" style="clear: both;">
+                <fieldset id="fieldset_question_0" class="container_radio_buttons" style="display: none;"><p>Did you find the <strong>Null Pointer Exception (NPE)</strong> defect?</p>
+                    <label><input type="radio" name="bug_3" id="bug_3_yes" value="0" class="option-input radio" required>Yes</label><br>
+                    <label><input type="radio" name="bug_3" id="bug_3_no" value="1" class="option-input radio">No</label><br>
+                </fieldset>
+
+                <fieldset id="fieldset_question_1" class="container_radio_buttons" style="display: none;"><p>Why do you think you could find the <strong>Null Pointer Exception (NPE)</strong> defect?</p>
+                    <div><label><textarea id="question_found_bug_3" name="question_found_bug_3" ></textarea></label></div>
+                </fieldset>
+
+                <fieldset id="fieldset_question_2" class="container_radio_buttons" style="display: none;"><p>Why do you think you could not find the <strong>Null Pointer Exception (NPE)</strong> defect?</p>
+                    <div><label><textarea id="question_missed_bug_3" name="question_missed_bug_3"></textarea></label></div>
+                </fieldset>
+
+                <fieldset id="fieldset_question_3" class="container_radio_buttons" style="display: none;"><p>Did you find the <strong>Stack Overflow Error (SOE)</strong> defect?</p>
+                    <label><input type="radio" name="bug_4" id="bug_4_yes" value="0" class="option-input radio" required/>Yes</label><br>
+                    <label><input type="radio" name="bug_4" id="bug_4_no" value="1" class="option-input radio">No</label><br>
+                </fieldset>
+
+                <fieldset id="fieldset_question_4" class="container_radio_buttons" style="display: none;"><p>Why do you think you could find the <strong>Stack Overflow Error (SOE)</strong> defect?</p>
+                    <div><label><textarea id="question_found_bug_4" name="question_found_bug_4" ></textarea></label></div>
+                </fieldset>
+
+                <fieldset id="fieldset_question_5" class="container_radio_buttons" style="display: none;"><p>Why do you think you could not find the <strong>Stack Overflow Error (SOE)</strong> defect?</p>
+                    <div><label><textarea id="question_missed_bug_4" name="question_missed_bug_4"></textarea></label></div>
+                </fieldset>
+
+                <script>
+                    document.getElementById("bug_3_yes").addEventListener("change",function() {
+                        document.getElementById("fieldset_question_1").setAttribute("style","display: block;");
+                        document.getElementById("fieldset_question_2").setAttribute("style","display: none;");
+                        document.getElementById('question_missed_bug_3').value = '';
+                        document.getElementById('question_found_bug_3').required=false;
+                        document.getElementById('question_missed_bug_3').required=false;
+                    });
+
+                    document.getElementById("bug_3_no").addEventListener("change",function() {
+                        document.getElementById("fieldset_question_1").setAttribute("style","display: none;");
+                        document.getElementById("fieldset_question_2").setAttribute("style","display: block;");
+                        document.getElementById('question_found_bug_3').value = '';
+                        document.getElementById('question_missed_bug_3').required=false;
+                        document.getElementById('question_found_bug_3').required=false;
+                    });
+
+                    document.getElementById("bug_4_yes").addEventListener("change",function() {
+                        document.getElementById("fieldset_question_4").setAttribute("style","display: block;");
+                        document.getElementById("fieldset_question_5").setAttribute("style","display: none;");
+                        document.getElementById('question_missed_bug_4').value = '';
+                        document.getElementById('question_found_bug_4').required=false;
+                        document.getElementById('question_missed_bug_4').required=false;
+                    });
+
+                    document.getElementById("bug_4_no").addEventListener("change",function() {
+                        document.getElementById("fieldset_question_4").setAttribute("style","display: none;");
+                        document.getElementById("fieldset_question_5").setAttribute("style","display: block;");
+                        document.getElementById('question_found_bug_4').value = '';
+                        document.getElementById('question_missed_bug_4').required=false;
+                        document.getElementById('question_found_bug_4').required=false;
+                    });
+                </script>
+                <button type="button" id="submitter_one" class="button blue" onclick="showNextQuestions()">Submit</button>
+        </div>
+
+
+        <div id="final_questions" style="clear: both; display: none">
+
+
+                <fieldset id="fieldset_question_pos_1" class="container_radio_buttons"><p>Do you think the position of the files influenced your ability to find (or not find) the <strong>Null Pointer Exception (NPE)</strong> defect?</p>
+                    <label><input type="radio" name="question_1_order" id="q1a0_order" value="0" class="option-input radio">Yes</label><br>
+                    <label><input type="radio" name="question_1_order" id="q1a1_order" value="1" class="option-input radio">No</label><br>
+                    <label><input type="radio" name="question_1_order" id="q1a2_order" value="2" class="option-input radio">I do not know</label><br>
+                    <label><input type="radio" name="question_1_order" id="q1a3_order" value="3" class="option-input radio">No answer</label><br>
+                </fieldset>
+
+                <fieldset id="fieldset_question_pos_2" class="container_radio_buttons"><p>Do you think the position of the files influenced your ability to find (or not find) the <strong>Stack Overflow Error (SOE)</strong> defect?</p>
+                    <label><input type="radio" name="question_2_order" id="q2a0_order" value="0" class="option-input radio">Yes</label><br>
+                    <label><input type="radio" name="question_2_order" id="q2a1_order" value="1" class="option-input radio">No</label><br>
+                    <label><input type="radio" name="question_2_order" id="q2a2_order" value="2" class="option-input radio">I do not know</label><br>
+                     <label><input type="radio" name="question_2_order" id="q2a3_order" value="3" class="option-input radio">No answer</label><br>
+                </fieldset>
+
+                <button type="submit" id="submitter" class="button blue">Next</button>
+
+        </div>
+         </form>
+
+    </div>
+</body>
+</html>

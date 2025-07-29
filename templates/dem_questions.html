@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+            <title>{{title}}</title>
+            <!-- Requires jQuery -->
+            <script src="{{ url_for('static', filename='js/jquery.min.js')}}" type="text/javascript"></script>
+            
+            <link rel="stylesheet" media="all" href="{{ url_for('static', filename='css/style.css')}}" />
+            <script>
+                $(document).ready(function(){
+                    var form = document.getElementById('current_form');
+                    if (form.attachEvent) {
+                        form.attachEvent("submit", processForm);
+                    } else {
+                        form.addEventListener("submit", processForm);
+                    }
+                });
+            function processForm(){
+                var ta2 = document.getElementById("q2text");
+                if (ta2.value !== undefined){
+                    other = document.getElementById("q2a9");
+                    $(other).val(ta2.value)
+                }
+            }
+            
+                </script>
+    </head>
+    <body>
+        <section class="content">
+            <p>Please answer the following questions before finishing the experiment:</p><br>
+            <form action="feedback" method="post" id="current_form">
+                
+                <fieldset id="fieldset_question_demo2" class="container_radio_buttons"><p>What is your gender?</p>
+                    <label><textarea id="gender" name="question_gender" style="height: 25px"></textarea></label>
+                </fieldset>
+
+                <fieldset id="fieldset_question_1" class="container_radio_buttons"><p>What is your highest achieved level of education?</p>
+                    <label><input type="radio" name="question_1" id="q1a0" value="0" class="option-input radio" required>High School but did not graduate</label><br>
+                    <label><input type="radio" name="question_1" id="q1a1" value="1" class="option-input radio">High School graduate or GED</label><br>
+                    <label><input type="radio" name="question_1" id="q1a2" value="2" class="option-input radio">Some college or 2-year degree</label><br>
+                    <label><input type="radio" name="question_1" id="q1a3" value="3" class="option-input radio">Bachelor in CS (Computer Science)</label><br>
+                    <label><input type="radio" name="question_1" id="q1a4" value="4" class="option-input radio">Bachelor in STEM (Science, Technology, Engineering and Mathematics)</label><br>
+                    <label><input type="radio" name="question_1" id="q1a5" value="5" class="option-input radio">Bachelor in a different area than CS or STEM</label><br>
+                    <label><input type="radio" name="question_1" id="q1a6" value="6" class="option-input radio">Master in CS</label><br>
+                    <label><input type="radio" name="question_1" id="q1a7" value="7" class="option-input radio">Master in STEM</label><br>
+                    <label><input type="radio" name="question_1" id="q1a8" value="8" class="option-input radio">Master in a different area than CS or STEM</label><br>
+                    <label><input type="radio" name="question_1" id="q1a9" value="9" class="option-input radio">PhD or higher academic title in CS</label><br>
+                    <label><input type="radio" name="question_1" id="q1a10" value="10" class="option-input radio">PhD or higher academic title in STEM</label><br>
+                    <label><input type="radio" name="question_1" id="q1a11" value="11" class="option-input radio">PhD or higher academic title in a different area than CS or STEM</label><br>
+                </fieldset>
+                
+                <fieldset id="fieldset_question_demo4" class="container_checkbox"><p>What's your current employment status?</p>
+                        <label><input type="checkbox" name="question_demo4" id="qdemo41" value="0" class="option-input check" required>Student</label><br>
+                        <label><input type="checkbox" name="question_demo41" id="qdemo42" value="1" class="option-input check">Intern</label><br>
+                        <label><input type="checkbox" name="question_demo42" id="qdemo43" value="2" class="option-input check">Part-time position</label><br>
+                        <label><input type="checkbox" name="question_demo43" id="qdemo44" value="3" class="option-input check">Full-time position</label><br>
+                        <label><input type="checkbox" name="question_demo44" id="qdemo45" value="4" class="option-input check">Unemployed</label><br>
+                </fieldset>
+                
+                <script>
+                    document.getElementById("qdemo41").addEventListener("change",function() {
+                        if (document.getElementById("qdemo41").checked == true) {
+                            document.getElementById("qdemo41").required = true;
+                        }
+                    })
+
+                    document.getElementById("qdemo42").addEventListener("change",function() {
+                        if (document.getElementById("qdemo42").checked == true) {
+                            document.getElementById("qdemo41").required = false;
+                        } else {
+                            if (document.getElementById("qdemo43").checked == false &&
+                                document.getElementById("qdemo44").checked == false &&
+                                document.getElementById("qdemo45").checked == false) {
+                                document.getElementById("qdemo41").required = true;
+                            }
+                        }
+                    })
+
+                    document.getElementById("qdemo43").addEventListener("change",function() {
+                        if (document.getElementById("qdemo43").checked == true){
+                            document.getElementById("fieldset_question_demo5").setAttribute("style","display: block;");
+                            document.getElementsByName("question_demo5").forEach(function (item) {
+                                item.required = true;
+                            });
+                            document.getElementById("fieldset_question_dem9").setAttribute("style","display: block;");
+                            document.getElementsByName("question_dem9").forEach(function (item) {
+                                item.required = true;
+                            });
+                            document.getElementById("fieldset_question_dem10").setAttribute("style","display: block;");
+                            document.getElementsByName("question_dem10").forEach(function (item) {
+                                item.required = true;
+                            });
+                            document.getElementById("qdemo41").required = false;
+                        } else {
+                            if (document.getElementById("qdemo44").checked == false){
+                                document.getElementById("fieldset_question_demo5").setAttribute("style","display: none;");
+                                document.getElementsByName("question_demo5").forEach(function (item) {
+                                    item.required = false;
+                                });
+                                document.getElementById("fieldset_question_dem9").setAttribute("style","display: none;");
+                                document.getElementsByName("question_dem9").forEach(function (item) {
+                                    item.required = false;
+                                });
+                                document.getElementById("fieldset_question_dem10").setAttribute("style","display: none;");
+                                document.getElementsByName("question_dem10").forEach(function (item) {
+                                    item.required = false;
+                                });
+                            }
+                            if (document.getElementById("qdemo42").checked == false &&
+                                document.getElementById("qdemo43").checked == false &&
+                                document.getElementById("qdemo45").checked == false) {
+                                document.getElementById("qdemo41").required = true;
+                            }
+                        }
+                    })
+                
+
+                    document.getElementById("qdemo44").addEventListener("change",function() {
+                        if (document.getElementById("qdemo44").checked == true){
+                            document.getElementById("fieldset_question_demo5").setAttribute("style","display: block;");
+                            document.getElementsByName("question_demo5").forEach(function (item) {
+                                item.required = true;
+                            });
+                            document.getElementById("fieldset_question_dem9").setAttribute("style","display: block;");
+                            document.getElementsByName("question_dem9").forEach(function (item) {
+                                item.required = true;
+                            });
+                            document.getElementById("fieldset_question_dem10").setAttribute("style","display: block;");
+                            document.getElementsByName("question_dem10").forEach(function (item) {
+                                item.required = true;
+                            });
+
+                            document.getElementById("qdemo41").required = false;
+                        } else {
+                            if (document.getElementById("qdemo43").checked == false){
+                                document.getElementById("fieldset_question_demo5").setAttribute("style","display: none;");
+                                document.getElementsByName("question_demo5").forEach(function (item) {
+                                    item.required = false;
+                                });
+                                document.getElementById("fieldset_question_dem9").setAttribute("style","display: none;");
+                                document.getElementsByName("question_dem9").forEach(function (item) {
+                                    item.required = false;
+                                });
+                                document.getElementById("fieldset_question_dem10").setAttribute("style","display: none;");
+                                document.getElementsByName("question_dem10").forEach(function (item) {
+                                    item.required = false;
+                                });
+                            }
+
+                            if (document.getElementById("qdemo42").checked == false &&
+                                document.getElementById("qdemo43").checked == false &&
+                                document.getElementById("qdemo45").checked == false) {
+                                document.getElementById("qdemo41").required = true;
+                            }
+                        }
+                    })
+
+                    document.getElementById("qdemo45").addEventListener("change",function() {
+                        if (document.getElementById("qdemo45").checked == true) {
+                            document.getElementById("qdemo41").required = false;
+                        } else {
+                            if (document.getElementById("qdemo42").checked == false &&
+                                document.getElementById("qdemo43").checked == false &&
+                                document.getElementById("qdemo44").checked == false) {
+                                document.getElementById("qdemo41").required = true;
+                            }
+                        }
+                    })
+                </script>
+
+                <fieldset id="fieldset_question_dem6" class="container_radio_buttons" style="display: none;"><p>Are you currently enrolled in a degree-granting program?</p>
+                    <label><input type="radio" name="question_dem6" id="qdem61" value="0" class="option-input radio" required>Yes</label><br>
+                    <label><input type="radio" name="question_dem6" id="qdem62" value="1" class="option-input radio">No</label><br>
+                </fieldset>
+
+                <fieldset id="fieldset_question_demo5" class="container_radio_buttons" style="display: none;"><p>What is your current position related to?</p>
+                    <label><input type="radio" name="question_demo5" id="qdemo50" value="0" class="option-input radio">Software developer</label><br>
+                    <label><input type="radio" name="question_demo5" id="qdemo51" value="1" class="option-input radio">Penetration tester</label><br>
+                    <label><input type="radio" name="question_demo5" id="qdemo52" value="2" class="option-input radio">Bug bounty hunter</label><br>
+                    <label><input type="radio" name="question_demo5" id="qdemo53" value="3" class="option-input radio">Software architect</label><br>
+                    <label><input type="radio" name="question_demo5" id="qdemo54" value="4" class="option-input radio">IT operations</label><br>
+                    <label><input type="radio" name="question_demo5" id="qdemo55" value="5" class="option-input radio">Project manager</label><br>
+                    <label><input type="radio" name="question_demo5" id="qdemo56" value="6" class="option-input radio">Researcher / Professor</label><br>
+                    <label><input type="radio" name="question_demo5" id="qdemo57" value="7" class="option-input radio">PhD student</label><br>
+                    <label><input type="radio" name="question_demo5" id="qdemo59" value="8" class="option-input radio">Other: <textarea name="question_demo5" id="qd5text" style="height: 21px; vertical-align: middle; margin-top: 0;"></textarea></label><br>
+                </fieldset>
+
+                <script>
+                    document.getElementById("qdemo50").addEventListener("change",function() {
+                        document.getElementById("qd5text").required = false;
+                    })
+                    document.getElementById("qdemo51").addEventListener("change",function() {
+                        document.getElementById("qd5text").required = false;
+                    })
+                    document.getElementById("qdemo52").addEventListener("change",function() {
+                        document.getElementById("qd5text").required = false;
+                    })
+                    document.getElementById("qdemo53").addEventListener("change",function() {
+                        document.getElementById("qd5text").required = false;
+                    })
+                    document.getElementById("qdemo54").addEventListener("change",function() {
+                        document.getElementById("qd5text").required = false;
+                    })
+                    document.getElementById("qdemo55").addEventListener("change",function() {
+                        document.getElementById("qd5text").required = false;
+                    })
+                    document.getElementById("qdemo56").addEventListener("change",function() {
+                        document.getElementById("qd5text").required = false;
+                    })
+                    document.getElementById("qdemo57").addEventListener("change",function() {
+                        document.getElementById("qd5text").required = false;
+                    })
+                    document.getElementById("qdemo59").addEventListener("change",function() {
+                        document.getElementById("qd5text").required = true;
+                    })
+                </script>
+                
+                <script>
+                    document.getElementById("qdem61").checked=true;
+
+                    document.getElementById("qdemo41").addEventListener("change",function() {
+                        if (document.getElementById("qdemo41").checked == true){
+                            document.getElementById("fieldset_question_dem6").setAttribute("style","display: block;");
+                            document.getElementById("qdem61").checked=false;
+                        } else {
+                            if (document.getElementById("qdemo42").checked == false){
+                                document.getElementById("fieldset_question_dem6").setAttribute("style","display: none;");
+                                document.getElementById("qdem61").checked=true;
+                            }
+                        }
+                    })
+                
+
+                    document.getElementById("qdemo42").addEventListener("change",function() {
+                        if (document.getElementById("qdemo42").checked == true){
+                            document.getElementById("fieldset_question_dem6").setAttribute("style","display: block;");
+                            document.getElementById("qdem61").checked=false;
+                        } else {
+                            if (document.getElementById("qdemo41").checked == false){
+                                document.getElementById("fieldset_question_dem6").setAttribute("style","display: none;");
+                                document.getElementById("qdem61").checked=true;
+                            }
+                        }
+                    })
+                
+                </script>
+
+                <fieldset id="fieldset_question_dem9" class="container_radio_buttons" style="display: none;"><p>How many employees does your company have?</p>
+                    <label><input type="radio" name="question_dem9" id="qdem91" value="0" class="option-input radio">1 employee</label><br>
+                    <label><input type="radio" name="question_dem9" id="qdem92" value="1" class="option-input radio">2-10 employees</label><br>
+                    <label><input type="radio" name="question_dem9" id="qdem93" value="1" class="option-input radio">11-19 employees</label><br>
+                    <label><input type="radio" name="question_dem9" id="qdem94" value="1" class="option-input radio">20-50 employees</label><br>
+                    <label><input type="radio" name="question_dem9" id="qdem95" value="1" class="option-input radio">51-100 employees</label><br>
+                    <label><input type="radio" name="question_dem9" id="qdem96" value="1" class="option-input radio">100-200 employees</label><br>
+                    <label><input type="radio" name="question_dem9" id="qdem97" value="1" class="option-input radio">Over 200 employees</label><br>
+                </fieldset>
+
+                <fieldset id="fieldset_question_dem10" class="container_radio_buttons" style="display: none;"><p>How big is your immediate team?</p>
+                    <label><input type="radio" name="question_dem10" id="qdem101" value="0" class="option-input radio">1 person</label><br>
+                    <label><input type="radio" name="question_dem10" id="qdem102" value="1" class="option-input radio">2-5 people</label><br>
+                    <label><input type="radio" name="question_dem10" id="qdem103" value="1" class="option-input radio">6-10 people</label><br>
+                    <label><input type="radio" name="question_dem10" id="qdem104" value="1" class="option-input radio">11-20 people</label><br>
+                    <label><input type="radio" name="question_dem10" id="qdem105" value="1" class="option-input radio">21-50 people</label><br>
+                    <label><input type="radio" name="question_dem10" id="qdem107" value="1" class="option-input radio">Over 50 people</label><br>
+                </fieldset>
+
+
+                <fieldset id="fieldset_question_dem8" class="container_radio_buttons"><p>Do you contribute to open-source software systems as one of your main programming activities?</p>
+                    <label><input type="radio" name="question_dem8" id="qdem81" value="0" class="option-input radio" required>Yes</label><br>
+                    <label><input type="radio" name="question_dem8" id="qdem82" value="1" class="option-input radio">No</label><br>
+                </fieldset>
+
+
+                <fieldset id="fieldset_question_years" class="container_radio_buttons"><p>Please specify for how many years you have performed the following activities: </p>
+                    <table class="striped-columns border">
+                        <tbody>
+                        <tr>
+                            <th class="question"></th>
+                            <th class="option">None</th>
+                            <th class="option">1 year or less</th>
+                            <th class="option">2 years</th>
+                            <th class="option">3-5 years</th>
+                            <th class="option">6-10 years</th>
+                            <th class="option">11 years or more</th>
+                        </tr>
+
+
+                        <tr>
+                            <td width="580" class="question" id="qdem-years-professional">Developed software in a professional setting (e.g., as employee of an IT-company or Open-Source contributor)</td>
+                            <td><label for="qdem-years-professional1"><input type="radio" value="1" name="professional" id="qdem-years-professional1" required="true"/></label></td>
+                            <td><label for="qdem-years-professional2"><input type="radio" value="2" name="professional" id="qdem-years-professional2" required="true"/></label></td>
+                            <td><label for="qdem-years-professional3"><input type="radio" value="3" name="professional" id="qdem-years-professional3" required="true"/></label></td>
+                            <td><label for="qdem-years-professional4"><input type="radio" value="4" name="professional" id="qdem-years-professional4" required="true"/></label></td>
+                            <td><label for="qdem-years-professional5"><input type="radio" value="5" name="professional" id="qdem-years-professional5" required="true"/></label></td>
+                            <td><label for="qdem-years-professional6"><input type="radio" value="6" name="professional" id="qdem-years-professional6" required="true"/></label></td>
+                        </tr>
+
+                        <tr>
+                            <td width="580" class="question" id="qdem-years-java">Programmed in Java (also not professionally)</td>
+                            <td><label for="qdem-years-java1"><input type="radio" value="1" name="java" id="qdem-years-java1" required="true"/></label></td>
+                            <td><label for="qdem-years-java2"><input type="radio" value="2" name="java" id="qdem-years-java2" required="true"/></label></td>
+                            <td><label for="qdem-years-java3"><input type="radio" value="3" name="java" id="qdem-years-java3" required="true"/></label></td>
+                            <td><label for="qdem-years-java4"><input type="radio" value="4" name="java" id="qdem-years-java4" required="true"/></label></td>
+                            <td><label for="qdem-years-java5"><input type="radio" value="5" name="java" id="qdem-years-java5" required="true"/></label></td>
+                            <td><label for="qdem-years-java6"><input type="radio" value="6" name="java" id="qdem-years-java6" required="true"/></label></td>
+                        </tr>
+
+                        <tr>
+                            <td width="580" class="question" id="qdemo-year-cr">Reviewed code</td>
+                            <td><label for="qdemo-year-cr1"><input type="radio" value="1" name="year-cr" id="qdemo-year-cr1" required="true"/></label></td>
+                            <td><label for="qdemo-year-cr2"><input type="radio" value="2" name="year-cr" id="qdemo-year-cr2" required="true"/></label></td>
+                            <td><label for="qdemo-year-cr3"><input type="radio" value="3" name="year-cr" id="qdemo-year-cr3" required="true"/></label></td>
+                            <td><label for="qdemo-year-cr4"><input type="radio" value="4" name="year-cr" id="qdemo-year-cr4" required="true"/></label></td>
+                            <td><label for="qdemo-year-cr5"><input type="radio" value="5" name="year-cr" id="qdemo-year-cr5" required="true"/></label></td>
+                            <td><label for="qdemo-year-cr6"><input type="radio" value="6" name="year-cr" id="qdemo-year-cr6" required="true"/></label></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </fieldset>
+
+                <fieldset id="fieldset_question_often" class="container_radio_buttons"><p>Please specify how often you have performed the following activities in the last three months: </p>
+                    <table class="striped-columns border">
+                        <tbody>
+                        <tr>
+                            <th class="question"></th>
+                            <th class="option">Not at all</th>
+                            <th class="option">About once</th>
+                            <th class="option">About once a month</th>
+                            <th class="option">About once a week</th>
+                            <th class="option">Daily or more often</th>
+                        </tr>
+
+                        <tr>
+                            <td width="580" class="question" id="qdemo-often-design">Designed code</td>
+                            <td><label for="qdemo-often-design1"><input type="radio" value="1" name="often-design" id="qdemo-often-design1" required="true"/></label></td>
+                            <td><label for="qdemo-often-design2"><input type="radio" value="2" name="often-design" id="qdemo-often-design2" required="true"/></label></td>
+                            <td><label for="qdemo-often-design3"><input type="radio" value="3" name="often-design" id="qdemo-often-design3" required="true"/></label></td>
+                            <td><label for="qdemo-often-design4"><input type="radio" value="4" name="often-design" id="qdemo-often-design4" required="true"/></label></td>
+                            <td><label for="qdemo-often-design5"><input type="radio" value="5" name="often-design" id="qdemo-often-design5" required="true"/></label></td>
+                        </tr>
+
+                        <tr>
+                            <td width="580" class="question" id="qdemo-often-programming">Developed code</td>
+                            <td><label for="qdemo-often-programming1"><input type="radio" value="1" name="often-programming" id="qdemo-often-programming1" required="true"/></label></td>
+                            <td><label for="qdemo-often-programming2"><input type="radio" value="2" name="often-programming" id="qdemo-often-programming2" required="true"/></label></td>
+                            <td><label for="qdemo-often-programming3"><input type="radio" value="3" name="often-programming" id="qdemo-often-programming3" required="true"/></label></td>
+                            <td><label for="qdemo-often-programming4"><input type="radio" value="4" name="often-programming" id="qdemo-often-programming4" required="true"/></label></td>
+                            <td><label for="qdemo-often-programming5"><input type="radio" value="5" name="often-programming" id="qdemo-often-programming5" required="true"/></label></td>
+                        </tr>
+
+                        <tr>
+                            <td width="580" class="question" id="qdemo-often-cr">Reviewed code</td>
+                            <td><label for="qdemo-often-cr1"><input type="radio" value="1" name="often-cr" id="qdemo-often-cr1" required="true"/></label></td>
+                            <td><label for="qdemo-often-cr2"><input type="radio" value="2" name="often-cr" id="qdemo-often-cr2" required="true"/></label></td>
+                            <td><label for="qdemo-often-cr3"><input type="radio" value="3" name="often-cr" id="qdemo-often-cr3" required="true"/></label></td>
+                            <td><label for="qdemo-often-cr4"><input type="radio" value="4" name="often-cr" id="qdemo-often-cr4" required="true"/></label></td>
+                            <td><label for="qdemo-often-cr5"><input type="radio" value="5" name="often-cr" id="qdemo-often-cr5" required="true"/></label></td>
+                        </tr>
+
+                        </tbody>
+                    </table>
+                </fieldset>
+
+                <br>
+                
+                <button type="submit" id="submitter" class="button blue">Next</button>
+            </form>
+            
+        </section>
+    </body>
+</html>
