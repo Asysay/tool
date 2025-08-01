@@ -1,4 +1,4 @@
-~~~0L-src/lculator.java
+~~~0L-src/main/java/experiment/InvoiceProcessor.java
 package main.java.experiment;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -237,7 +237,7 @@ public class ReportGenerator {
      */
     public void printReport(LocalDate from, LocalDate to, String curr) {
         Map<String,BigDecimal> pnl = buildPnL(from, to, curr);
-        System.out.println("P&L " + from + " – " + to + " (" + curr + ")");
+        System.out.println("P&L " + from + " - " + to + " (" + curr + ")");
         pnl.forEach((k,v) -> System.out.println(k + ": " + v));
     }
 }
@@ -755,7 +755,7 @@ public class ReportGenerator {
      */
     public void printReport(LocalDate from, LocalDate to, String curr) {
         Map<String,BigDecimal> pnl = buildPnL(from, to, curr);
-        System.out.println("P&L " + from + " – " + to + " (" + curr + ")");
+        System.out.println("P&L " + from + " - " + to + " (" + curr + ")");
         pnl.forEach((k,v) -> System.out.println(k + ": " + v));
     }
 }

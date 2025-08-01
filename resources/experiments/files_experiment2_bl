@@ -1,4 +1,4 @@
-~~~0L-src/main/java/experiment/CurrencyConverter.java
+~~~0L-src/main/java/experiment/ConvertValue.java
 package main.java.experiment;
 import java.math.BigDecimal;
 import java.util.Map;
@@ -7,7 +7,7 @@ import java.util.Map;
  * Extremely light-weight FX helper that converts between a subset
  * of ISO-4217 currencies using a hard-coded USD table.
  */
-public class CurrencyConverter {
+public class ConvertValue {
 
     /* USD-centric FX table */
     private static final Map<String,BigDecimal> USD_TABLE = Map.of(
@@ -205,13 +205,13 @@ public class ReportGenerator {
      */
     public void printReport(LocalDate from, LocalDate to, String curr) {
         Map<String,BigDecimal> pnl = buildPnL(from, to, curr);
-        System.out.println("P&L " + from + " – " + to + " (" + curr + ")");
+        System.out.println("P&L " + from + " - " + to + " (" + curr + ")");
         pnl.forEach((k,v) -> System.out.println(k + ": " + v));
     }
 }
 ~~~~
 
-~~~4L-src/main/java/experiment/ValidateAndProcessInvoice.java
+~~~4L-src/main/java/experiment/ValidateandProcessInvoice.java
 package main.java.experiment;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -221,7 +221,7 @@ import java.util.*;
  * Handles validation and posting of a single customer invoice.
  * Produces a generic Map that represents the accounting entry.
  */
-public class ValidateAndProcessInvoice {
+public class ValidateandProcessInvoice {
 
     /**
      * Immutable value object representing an invoice.
@@ -277,7 +277,7 @@ public class ValidateAndProcessInvoice {
 }
 ~~~~
 
-~~~0R-src/main/java/experiment/CurrencyConverter.java
+~~~0R-src/main/java/experiment/ConvertValue.java
 package main.java.experiment;
 import java.math.BigDecimal;
 import java.util.Map;
@@ -286,7 +286,7 @@ import java.util.Map;
  * Extremely light-weight FX helper that converts between a subset
  * of ISO-4217 currencies using a hard-coded USD table.
  */
-public class CurrencyConverter {
+public class ConvertValue {
 
     /* USD-centric FX table */
     private static final Map<String,BigDecimal> USD_TABLE = Map.of(
@@ -732,13 +732,13 @@ public class ReportGenerator {
      */
     public void printReport(LocalDate from, LocalDate to, String curr) {
         Map<String,BigDecimal> pnl = buildPnL(from, to, curr);
-        System.out.println("P&L " + from + " – " + to + " (" + curr + ")");
+        System.out.println("P&L " + from + " - " + to + " (" + curr + ")");
         pnl.forEach((k,v) -> System.out.println(k + ": " + v));
     }
 }
 ~~~~
 
-~~~4R-src/main/java/experiment/ValidateAndProcessInvoice.java
+~~~4R-src/main/java/experiment/ValidateandProcessInvoice.java
 package main.java.experiment;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -748,7 +748,7 @@ import java.util.*;
  * Handles validation and posting of a single customer invoice.
  * Produces a generic Map that represents the accounting entry.
  */
-public class ValidateAndProcessInvoice {
+public class ValidateandProcessInvoice {
 
     /**
      * Immutable value object representing an invoice.
