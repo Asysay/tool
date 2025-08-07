@@ -92,6 +92,15 @@ function makeMarker(msg){
 	name.innerHTML = "<b>You: </b>";
 	marker.appendChild(document.createTextNode(msg));
 	marker.className = "lint-error";
+/*	var marker = document.createElement("div");
+	var icon = marker.appendChild(document.createElement("pre"));
+	var icon1 = marker.appendChild(document.createElement("code"));
+	icon1.id="formatted-code";
+	icon1.textContent=msg;
+	icon.innerHTML = "!!";
+	icon.className = "lint-error-icon";
+	marker.className = "lint-error";
+	//marker.appendChild(document.createTextNode(msg)); */
 	return marker;
 }
 

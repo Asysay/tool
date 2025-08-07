@@ -564,9 +564,9 @@ def to_openai_messages(system_prompt, history, new_user_text, new_user_image):
     if system_prompt:
         messages.append({"role": "developer", "content": system_prompt})
 
-    # history items are { time, role:"user1"|"bot1", content, isImage }
+    # history items are { time, role:"user2"|"bot2", content, isImage }
     for m in history or []:
-        role = "user" if m.get("role") == "user1" or m.get("role") == "user2" else "assistant"
+        role = "user" if m.get("role") == "user2" or m.get("role") == "user2" else "assistant"
         if m.get("isImage"):
             parts = []
             # If you stored descriptive text, add it as a text part; many entries are image-only.

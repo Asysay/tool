@@ -20,6 +20,12 @@
 
     <!-- Script for diff production -->
     <script src="{{ url_for('static', filename='js/experiment.js')}}" type="text/javascript"></script>
+
+    <!-- Colorize Java code from chatGPT -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs/themes/prism-tomorrow.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/prismjs/prism.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs/components/prism-java.min.js"></script>
+
     <style>
         .lint-error {font-family: arial; font-size: 80%; background: #fcfa96; color: #a00; padding: 2px 5px 3px; border: 1px solid black;}
         .lint-error-icon {color: white; background-color: red; font-weight: bold; border-radius: 50%; padding: 0 3px; margin-right: 7px;}
@@ -191,7 +197,7 @@
   /* Sidebar fixed on the left, 30% width */
   #chat-sidebar{
     position: fixed; left:0; top:0; bottom:0;
-    width:30vw; max-width:400px;
+    width: var(--chatW, 30%);
     background:#f9f9f9; border-right:1px solid #ddd;
     display:flex; flex-direction:column; z-index:1000;
   }
@@ -209,15 +215,15 @@ body {
 
   #chat-messages{ flex:1; overflow-y:auto; padding:14px 10px; }
   .message{ display:flex; margin-bottom:12px; }
-  .message.user1{ justify-content:flex-end; }
-  .message.bot1 { justify-content:flex-start; }
+  .message.user2{ justify-content:flex-end; }
+  .message.bot2 { justify-content:flex-start; }
   .bubble{
     max-width:70%; padding:8px 10px; border-radius:8px;
     word-wrap:anywhere; line-height:1.35;
     box-shadow:0 0 0 1px rgba(0,0,0,.04);
   }
-  .user1 .bubble{ background:#DCF8C6; }
-  .bot1  .bubble{ background:#eee; color:#111; }
+  .user2 .bubble{ background:#DCF8C6; }
+  .bot2  .bubble{ background:#eee; color:#111; }
   .bubble img{ max-width:100%; border-radius:6px; display:block; }
 
   #chat-input-area{
@@ -231,13 +237,90 @@ body {
   }
   .square-btn:disabled{ opacity:.5; cursor:not-allowed; }
   #text-input{
-    flex:1; padding:8px; border:1px solid #ccc; border-radius:4px;
+    flex:1; 
+    padding:8px; 
+    border:1px solid #ccc; 
+    border-radius:4px;
+    resize:none;               
+    overflow-y:auto;           
+    line-height:1.35;
+    max-height:40vh;           
+    font-family: inherit;      
+    font-size: 1rem;
   }
+
+  /* === Resize handle on the right edge === */
+  #chat-resizer{
+    position:absolute; top:0; right:0; height:100%;
+    width:8px; cursor:col-resize;
+    /* wider hit target on touch devices */
+    touch-action: none;
+  }
+  /* While dragging, show resize cursor everywhere */
+  body.resizing{ cursor: col-resize; }
 
   /* Optional mobile mode: sidebar at top */
   @media (max-width:800px){
     #chat-sidebar{ width:100%; height:38%; max-width:none; bottom:auto; }
     main{ margin-left:0; margin-top:38%; }
+  }
+</style>
+
+<style>
+  /* --- Code formatting --- */
+  .bubble pre.code-block {
+    position: relative;
+    margin: 8px 0;
+    padding: 12px 12px 12px 12px;
+    border-radius: 8px;
+    background: #0b0d0e;     /* dark block like chatgpt.com */
+    color: #e6edf3;
+    overflow: auto;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    line-height: 1.45;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .bubble pre.code-block code {
+    white-space: pre;
+    display: block;
+  }
+
+  .bubble .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+    font: 12px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    background: #111315;
+    color: #9da7b3;
+    padding: 8px 10px;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+  }
+  .bubble .code-header .lang {
+    opacity: 0.9;
+  }
+  .bubble .copy-btn {
+    border: 1px solid rgba(255,255,255,0.12);
+    background: #1a1d1f;
+    color: #cbd5e1;
+    border-radius: 6px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 12px;
+  }
+  .bubble .copy-btn:active {
+    transform: translateY(1px);
+  }
+
+  /* Inline `code` in normal paragraphs */
+  .bubble p code, .bubble li code, .bubble span.inline-code {
+    background: rgba(2, 6, 23, 0.08);
+    border: 1px solid rgba(0,0,0,0.08);
+    padding: 0 .3em;
+    border-radius: 4px;
+    font: 12.5px/1.3 ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   }
 </style>
  
@@ -411,10 +494,11 @@ body {
   <div id="chat-messages" aria-live="polite"></div>
 
   <div id="chat-input-area">
-    <button id="send-text" class="square-btn" title="Send text" aria-label="Send text">➤</button>
-    <input id="text-input" type="text" placeholder="Type a message…" autocomplete="off" />
-    <input id="image-input" type="file" accept="image/*" style="display:none">
     <button id="send-image" class="square-btn" title="Send image" aria-label="Send image">🖼️</button>
+    <textarea id="text-input" placeholder="Type a message… (Shift+Enter = newline)"></textarea>
+    <input id="image-input" type="file" accept="image/*" style="display:none">
+    <button id="send-text" class="square-btn" title="Send text" aria-label="Send text">➤</button>
+    <div id="chat-resizer" aria-hidden="true"></div>
   </div>
 </aside>
 
@@ -429,12 +513,12 @@ const USE_SERVER_LOG = true;
 const SESSION_KEY = "chatSessionId";
 
 /* Only these actions render as bubbles; others are logged only */
-const RENDERABLE = new Set(["user_text1","user_image1","ai_text1","ai_image1"]);
+const RENDERABLE = new Set(["user_text2","user_image2","ai_text2","ai_image2"]);
 const ACTION_TO_VIEW = {
-  user_text1: { role:"user1", isImage:false },
-  user_image1:{ role:"user1", isImage:true  },
-  ai_text1:   { role:"bot1",  isImage:false },
-  ai_image1:  { role:"bot1",  isImage:true  },
+  user_text2: { role:"user2", isImage:false },
+  user_image2:{ role:"user2", isImage:true  },
+  ai_text2:   { role:"bot2",  isImage:false },
+  ai_image2:  { role:"bot2",  isImage:true  },
 };
 
 const chatArea    = document.getElementById("chat-messages");
@@ -444,7 +528,7 @@ const sendImgBtn  = document.getElementById("send-image");
 const imageInput  = document.getElementById("image-input");
 
 let chatLogFull = [];   // all records (including analytics)
-let chatLog     = [];   // only renderable records, roles are "user1"/"bot1"
+let chatLog     = [];   // only renderable records, roles are "user2"/"bot2"
 
 /* Session id */
 let sessionId = localStorage.getItem(SESSION_KEY);
@@ -456,6 +540,11 @@ if(!sessionId){
 
 function scrollToEnd(){ chatArea.scrollTop = chatArea.scrollHeight; }
 
+function autosizeTextarea(el){
+  el.style.height = "auto";
+  el.style.height = Math.min(el.scrollHeight, window.innerHeight * 0.4) + "px";
+}
+
 function addBubble(role, content, isImage=false){
   const wrap = document.createElement("div");
   wrap.className = `message ${role}`;
@@ -466,19 +555,85 @@ function addBubble(role, content, isImage=false){
     const img = new Image();
     img.src = content; img.alt = "sent image";
     bubble.appendChild(img);
-  }else{
-    bubble.textContent = content;
+  }else {
+      if (role === "bot2") {
+        // AI output: auto-detect and render code blocks + inline code
+        const frag = renderAIMessageHtml(String(content ?? ""));
+        bubble.appendChild(frag);
+        if (window.Prism && Prism.highlightAllUnder) Prism.highlightAllUnder(bubble); // Prism
+      } else {
+        // User text is plain
+        bubble.textContent = content;
+      }
   }
   wrap.appendChild(bubble);
   chatArea.appendChild(wrap);
   scrollToEnd();
 }
 
+function initResizableSidebar(){
+  const sidebar = document.getElementById("chat-sidebar");
+  const resizer = document.getElementById("chat-resizer");
+  if(!sidebar || !resizer) return;
+
+  const KEY = "chatW_px";               // per-page-session persistence
+  const MIN = 260;                      // px
+  const MAX = () => Math.min(innerWidth * 0.95, 1200);
+
+  // restore previous width for this tab
+  const saved = sessionStorage.getItem(KEY);
+  if (saved) sidebar.style.setProperty("--chatW", `${parseInt(saved,10)}px`);
+
+  let startX = 0, startW = 0;
+
+  resizer.addEventListener("pointerdown", (e) => {
+    startX = e.clientX;
+    startW = sidebar.getBoundingClientRect().width;
+
+    document.body.classList.add("resizing");
+    resizer.setPointerCapture(e.pointerId);
+
+    const onMove = (ev) => {
+      const dx = ev.clientX - startX;
+      const w  = Math.max(MIN, Math.min(MAX(), startW + dx));
+      sidebar.style.setProperty("--chatW", `${w}px`);
+    };
+
+    const onUp = (ev) => {
+      // persist for this tab only
+      const w = parseInt(getComputedStyle(sidebar).getPropertyValue("--chatW"), 10);
+      if (!Number.isNaN(w)) sessionStorage.setItem(KEY, String(w));
+
+      document.body.classList.remove("resizing");
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+    };
+
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+  });
+
+  // Double-click the bar to reset back to the default (30vw)
+  resizer.addEventListener("dblclick", () => {
+    sessionStorage.removeItem(KEY);
+    sidebar.style.removeProperty("--chatW");
+  });
+
+  // Keep clamped when viewport changes
+  window.addEventListener("resize", () => {
+    const raw = sessionStorage.getItem(KEY);
+    if (!raw) return;
+    const w = Math.max(MIN, Math.min(MAX(), parseInt(raw,10)));
+    sidebar.style.setProperty("--chatW", `${w}px`);
+    sessionStorage.setItem(KEY, String(w));
+  });
+}
+
 /* =========
-   Logging – ALWAYS call provided logData(action, data)
+   Logging
 =========== */
 function logLine(action, data){
-  logData(action, data); // uses existing function from your app
+  logData(action, data); 
   chatLogFull.push({ ts: Date.now(), action, data, sessionId });
 }
 
@@ -491,14 +646,15 @@ async function sha256Hex(str){
 
 /* Send text */
 async function handleTextSend(){
-  const text = textInput.value.trim();
+  const text = textInput.value.replace(/\r?\n$/, "").trim();
   if(!text) return;
 
   textInput.value = "";
-  addBubble("user1", text);
-  chatLog.push({ time: Date.now(), role:"user1", content: text, isImage:false });
+  autosizeTextarea(textInput);
+  addBubble("user2", text);
+  chatLog.push({ time: Date.now(), role:"user2", content: text, isImage:false });
 
-  logLine("user_text1", text);
+  logLine("user_text2", text);
 
   queryAI({ text });
 }
@@ -508,26 +664,127 @@ function handleImageFile(file){
   const reader = new FileReader();
   reader.onload = async () => {
     const imgData = reader.result;
-    addBubble("user1", imgData, true);
-    chatLog.push({ time: Date.now(), role:"user1", content: imgData, isImage:true });
+    addBubble("user2", imgData, true);
+    chatLog.push({ time: Date.now(), role:"user2", content: imgData, isImage:true });
 
     let hash = "n/a";
     try{ hash = await sha256Hex(imgData); }catch(_){}
-    logLine("user_image1", `sha256:${hash};bytes:${imgData.length}`);
+    logLine("user_image2", `sha256:${hash};bytes:${imgData.length}`);
 
     queryAI({ image: imgData });
   };
   reader.readAsDataURL(file);
 }
 
+  // --- Utilities for safe HTML ---
+  function escapeHtml(s) {
+    return s.replace(/[&<>"']/g, m => (
+      m === '&' ? '&amp;' :
+      m === '<' ? '&lt;'  :
+      m === '>' ? '&gt;'  :
+      m === '"' ? '&quot;': '&#39;'));
+  }
+
+  // Split text into segments with code fences ```lang\n...\n```
+  // Returns an array of {type:"code"| "text", lang?, content}
+  function splitFencedCode(text) {
+    const out = [];
+    const fence = /```([\w+-]*)\n([\s\S]*?)```/g;
+    let last = 0, m;
+    while ((m = fence.exec(text)) !== null) {
+      if (m.index > last) {
+        out.push({ type: "text", content: text.slice(last, m.index) });
+      }
+      out.push({ type: "code", lang: (m[1] || "").toLowerCase(), content: m[2] });
+      last = fence.lastIndex;
+    }
+    if (last < text.length) out.push({ type: "text", content: text.slice(last) });
+    return out;
+  }
+
+  // Light markdown-ish to HTML for normal text:
+  // - paragraphs
+  // - inline code `...`
+  function renderTextWithInlineCode(s) {
+    // Escape everything first
+    let html = escapeHtml(s);
+
+    // Inline code: `...`
+    html = html.replace(/`([^`]+)`/g, (_,$1) => `<span class="inline-code">${$1}</span>`);
+
+    // Simple paragraphs (split on double newlines)
+    const parts = html.split(/\n{2,}/).map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`);
+    return parts.join("");
+  }
+
+  // Build a bubble DOM node for AI text that may contain code fences
+  function renderAIMessageHtml(text) {
+    const frag = document.createDocumentFragment();
+    const blocks = splitFencedCode(text);
+
+    for (const b of blocks) {
+      if (b.type === "code") {
+        const lang = b.lang || "text";
+        const header = document.createElement("div");
+        header.className = "code-header";
+        header.innerHTML = `<span class="lang">${escapeHtml(lang)}</span>
+                            <button class="copy-btn" type="button">Copy</button>`;
+
+        const pre = document.createElement("pre");
+        pre.className = "code-block";
+        const code = document.createElement("code");
+        code.className = lang ? `language-${lang}` : "";
+        code.textContent = b.content.replace(/\n+$/, ""); // trim trailing newlines
+        pre.appendChild(code);
+
+        // Prism highlighting (optional)
+        // if (window.Prism && Prism.highlightElement) Prism.highlightElement(code);  // Prism
+
+        const wrapper = document.createElement("div");
+        wrapper.appendChild(header);
+        wrapper.appendChild(pre);
+        frag.appendChild(wrapper);
+      } else {
+        const div = document.createElement("div");
+        div.innerHTML = renderTextWithInlineCode(b.content);
+        frag.appendChild(div);
+      }
+    }
+    return frag;
+  }
+
+  // Copy button (event delegation)
+  document.addEventListener("click", async (e) => {
+    const btn = e.target.closest(".copy-btn");
+    if (!btn) return;
+    const pre = btn.parentElement?.nextElementSibling; // .code-header -> <pre>
+    const code = pre?.querySelector("code");
+    if (!code) return;
+    try {
+      await navigator.clipboard.writeText(code.textContent || "");
+      const old = btn.textContent;
+      btn.textContent = "Copied";
+      setTimeout(() => (btn.textContent = old), 1200);
+    } catch {
+      // fallback
+      const rng = document.createRange();
+      rng.selectNodeContents(code);
+      const sel = getSelection();
+      sel.removeAllRanges();
+      sel.addRange(rng);
+      document.execCommand("copy");
+      sel.removeAllRanges();
+    }
+  });
+
 /* Talk to backend */
 async function queryAI({ text=null, image=null }){
   const payload = {
     system_prompt: SYSTEM_PROMPT,
     sessionId,
-    history: chatLog,      // roles are "user1"/"bot1"
-    new_user_text1: text,
-    new_user_image1: image
+    history: chatLog,      // roles are "user2"/"bot2"
+    new_user_text2: text,
+    new_user_image2: image
   };
 
   logLine("request_dispatch", JSON.stringify({ hasText: !!text, hasImage: !!image }));
@@ -545,16 +802,16 @@ async function queryAI({ text=null, image=null }){
     const data = await res.json();
 
     if(data.type === "image"){
-      addBubble("bot1", data.content, true);
-      chatLog.push({ time: Date.now(), role:"bot1", content:data.content, isImage:true });
-      logLine("ai_image1", data.content);
+      addBubble("bot2", data.content, true);
+      chatLog.push({ time: Date.now(), role:"bot2", content:data.content, isImage:true });
+      logLine("ai_image2", data.content);
     }else{
-      addBubble("bot1", data.content, false);
-      chatLog.push({ time: Date.now(), role:"bot1", content:data.content, isImage:false });
-      logLine("ai_text1", data.content);
+      addBubble("bot2", data.content, false);
+      chatLog.push({ time: Date.now(), role:"bot2", content:data.content, isImage:false });
+      logLine("ai_text2", data.content);
     }
   }catch(err){
-    addBubble("bot1", "⚠️ Error contacting server.");
+    addBubble("bot2", "⚠️ Error contacting server.");
     logLine("error", String(err));
     console.error(err);
   }finally{
@@ -570,12 +827,23 @@ function setSending(b){
 
 /* Wire events & boot */
 sendTextBtn.addEventListener("click", handleTextSend);
-textInput.addEventListener("keydown", e => { if(e.key === "Enter") handleTextSend(); });
+textInput.addEventListener("keydown", (e) => {
+  if (e.isComposing) return;                      
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();                           
+    handleTextSend();
+  }
+});
 
 sendImgBtn.addEventListener("click", () => imageInput.click());
 imageInput.addEventListener("change", () => {
   if(imageInput.files && imageInput.files[0]) handleImageFile(imageInput.files[0]);
 });
+textInput.addEventListener("input", () => autosizeTextarea(textInput));
+
+autosizeTextarea(textInput);
+initResizableSidebar();
+
 </script>
 
 </body>
