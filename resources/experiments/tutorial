@@ -1,0 +1,29 @@
+~~~0L-HelloWorld.java
+class HelloWorld {
+    //TODO
+    return 0;
+}
+~~~~
+
+~~~1L-BuggedHelloWorld.java
+class HelloWorld {
+    //TODO
+    return 0;
+}
+~~~~
+
+~~~0R-HelloWorld.java
+class HelloWorld {
+    public static void main(String[] args) {
+        System.out.println("Hello, World!"); 
+    }
+}
+~~~~
+
+~~~1R-BuggedCode.java
+class HelloWorld {
+    public static void main(String[] args) {
+        System.out.println("Hello, World!") //The semicolon at the end here is missing. Press the number of this line to type a comment. 
+    }
+}
+~~~~

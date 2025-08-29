@@ -21,51 +21,12 @@
     <!-- Script for diff production -->
     <script src="{{ url_for('static', filename='js/experiment.js')}}" type="text/javascript"></script>
 
-    <!-- Colorize Java code from chatGPT -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs/themes/prism-tomorrow.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/prismjs/prism.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs/components/prism-java.min.js"></script>
 
     <style>
         .lint-error {font-family: arial; font-size: 80%; background: #fcfa96; color: #a00; padding: 2px 5px 3px; border: 1px solid black;}
         .lint-error-icon {color: white; background-color: red; font-weight: bold; border-radius: 50%; padding: 0 3px; margin-right: 7px;}
     </style>
-   <style>
-      /* Layout & positioning */
-    .rsme-wrap {
-      margin-left: 30%;          /* place the whole block at ~30% from the left */
-      max-width: 700px;          /* optional: keep text/labels readable */
-    }
-
-    .rsme-question {
-      margin: 0 0 0.5rem 0;      /* ensures the scale appears just below the question */
-      font-weight: 600;
-    }
-
-    /* Scale container: keep it narrow and let SVG handle height in mm */
-    .rsme-scale {
-      position: relative;
-      width: min(100%, 520px);   /* enough horizontal room for numbers (left) and labels (right) */
-      user-select: none;
-    }
-
-    /* SVG text default styling */
-    .rsme-scale text {
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      font-size: 3.2px;          /* SVG user units (scaled by viewBox); tuned for readability */
-    }
-
-    /* Optional: cursor shows it’s clickable if you keep the JS for selecting a value */
-    .rsme-scale svg { cursor: crosshair; }
-
-    /* Print: ensure everything is crisp and uses physical mm */
-    @media print {
-      .rsme-wrap { margin-left: 0; }
-      .rsme-scale { width: 120mm; }
-    }
-    </style>
-
-
+   
     <script type="text/javascript">
         $(document).ready(function () {
             logData("pageLoaded", "pageLoaded");
@@ -127,8 +88,6 @@
                 }
                 setEditors(editors);
                 computeLinesInHunk("none", 0);
-                logData('visibleHunks', determineVisibleHunks());
-	            logData('visibleLines', determineVisibleLines());
 
             });
 
@@ -157,24 +116,20 @@
         * Check if the user really wants to complete the review
         */
         function validateReview() {
-	    if (confirm('Do you want to complete the review?')) {
+	    if (confirm('Do you want to complete the Tutorial?')) {
 		    showquestions();
 	        }
         }
 
         function showquestions(){
-            logData("end_cr_experiment", "clickshowquestions");
+            logData("endtutorial", "clickshowquestions");
             disableRemarks();
             disableScrollRecording();
-            $("#review-completed").hide();
+            $("#tutorial-completed").hide();
             $("#id01").hide();
             $("#final-questions").show();
         }
 
-        function shownextquestion(){
-            $("#final-questions").hide();
-            $("#continue-question").show();
-        }
     </script>
     <style>
         li {
@@ -216,19 +171,6 @@ body {
   .user2 .bubble{ background:#DCF8C6; }
   .bot2  .bubble{ background:#eee; color:#111; }
   .bubble img{ max-width:100%; border-radius:6px; display:block; }
-
-  .bubble .typing{ display:inline-flex; gap:6px; align-items:center; }
-  .bubble .typing .dot{
-    width:8px; height:8px; border-radius:50%;
-    background:#9da7b3; opacity:.35;
-    animation: typingBlink 1s infinite ease-in-out;
-  }
-  .bubble .typing .dot:nth-child(2){ animation-delay:.15s; }
-  .bubble .typing .dot:nth-child(3){ animation-delay:.30s; }
-  @keyframes typingBlink{
-    0%, 80%, 100% { transform: translateY(0);   opacity:.35; }
-    40%           { transform: translateY(-2px); opacity:1;   }
-  }
 
   #chat-input-area{
     display:flex; align-items:center; gap:6px;
@@ -334,11 +276,32 @@ body {
 </style>
 <body>
     <div>
-        <p><h1>Review Task (Store)</h1></p>
-    </div>
+    <p><h1>Instructions</h1></p>
+    <p>In the following experiment we are going to show you the code changes to review.</p>
+    <p>Please take the review task <strong>very seriously</strong> (this is critical for the scientific validity of this experiment).</p>
+    <p>There is a total of <strong>two</strong> tasks with 5 files each. There is a tutorial code with two files at the start of the experiment that does not count towards the actual experiment.</p>
+
+    <h3>Information</h3>
+    <ul>
+        <li>The old version of the code is on the left, the new version is on the right.</li>
+        <li><strong>Review comments</strong></li>
+        <ul>
+            <li>To <strong>add</strong> a review comment, click on the corresponding line number. Please add the review comment to the second file at the bugged place.</li>
+            <li>To <strong>modify/delete</strong> a review comment, click on the corresponding line number again and modify/delete the comment's text.</li>
+        </ul>
+        <li><strong>Usage of genAI</strong></li>
+        <ul>
+            <li>At the left the screen is a window with GPT-4o. You can send both text and images to it.</li>
+            <li>The chat screen can be dragged left and right to increase or decrease it. Double click on the border returns it to original state.</li>
+        </ul>
+        <li>Once you confirm to conclude the review, it will not be possible to add, delete, or modify the remarks anymore.</li>
+        <li>At the end of each page you will be asked to choose how much you were interrupted and how mentally taxing was the task.</li>
+    </ul>
+
+</div>
     <div>
         <form method="get" id="button-continue">
-            <button type="button" class="button blue" style="height: 50px;">I have read the text above and I want to start the review ►</button><br><br>
+            <button type="button" class="button blue" style="height: 50px;">I have read the text above and I want to start the tutorial ►</button><br><br>
         </form>
     </div>
     <div class="mergely-full-screen-8" style="overflow-y: scroll; display: none" id="div-mergely">
@@ -357,52 +320,20 @@ body {
         </div>
 
         <div style="clear: both;">
-            <button id="review-completed" onclick="document.getElementById('id01').style.display='block'" class="button blue" style="height: 50px;">I have completed my review</button>
+            <button id="tutorial-completed" onclick="document.getElementById('id01').style.display='block'" class="button blue" style="height: 50px;">I have completed the tutorial</button>
         </div>
 
         <div style="clear: both; display: none" id="final-questions">
                 <!-- "diff_data" is a fieldset with a textarea inside containing JSON formatted log data. Doing this
                 we do not need to manipulate data in a submission function due Flask post request mechanics-->
-            <form action="{{ url_for('advance') }}" method="post">
-                <fieldset id="diff_data" hidden style="display: none">
-                    <textarea name="hidden_log" id="hidden_log"></textarea>
-                </fieldset>
-                {{ md_body|safe }}
+            <form action="{{ url_for('run_experiment') }}" method="post">
                 <br>
                 <fieldset id="fieldset_question_5" class="container_radio_buttons">
-                    <p>How long have you been interrupted during the execution of the review?</p>
-                    <label><input type="radio" name="question_interruption_time1" id="question_interruption_time_a0" value="0" class="option-input radio" required>No interruption time</label><br>
-                    <label><input type="radio" name="question_interruption_time1" id="question_interruption_time_a1" value="1" class="option-input radio">1-2 minutes</label><br>
-                    <label><input type="radio" name="question_interruption_time1" id="question_interruption_time_a2" value="2" class="option-input radio">up to 5 minutes</label><br>
-                    <label><input type="radio" name="question_interruption_time1" id="question_interruption_time_a3" value="3" class="option-input radio">up to 10 minutes</label><br>
-                    <label><input type="radio" name="question_interruption_time1" id="question_interruption_time_a4" value="4" class="option-input radio">more than 10 minutes</label><br>
-                </fieldset>
-                <fieldset id="fieldset_AIquestion" class="container_radio_buttons">
-                    <p>How much has the AI helped you during the review?</p>
-                    <label><input type="radio" name="AIquestion1" id="AIquestion1_a0" value="0" class="option-input radio" required>No help at all</label><br>
-                    <label><input type="radio" name="AIquestion1" id="AIquestion1_a1" value="1" class="option-input radio">Very little help</label><br>
-                    <label><input type="radio" name="AIquestion1" id="AIquestion1_a2" value="2" class="option-input radio">Some help</label><br>
-                    <label><input type="radio" name="AIquestion1" id="AIquestion1_a3" value="3" class="option-input radio">Considerable help</label><br>
-                    <label><input type="radio" name="AIquestion1" id="AIquestion1_a4" value="4" class="option-input radio">Most help</label><br>
+                    <p>Did you understand the instructions?</p>
+                    <label><input type="radio" name="tutorial" id="yes" value="0" class="option-input radio" required>Yes</label><br>
+                    <label><input type="radio" name="tutorial" id="no" value="1" class="option-input radio">No</label><br>
                 </fieldset>
                 <br>
-  
-    <fieldset id="fieldset_RSME" class="container_radio_buttons">
-           <div class="rsme-wrap" aria-label="Rating Scale Mental Effort">
-          <!-- This is your question, kept just above the scale -->
-          <p class="rsme-question">How much mental effort did this task require?</p>
-
-          <!-- The scale -->
-          <div class="rsme-scale" role="img" aria-label="0 to 150 millimetres scale with mental effort anchors">
-            <!-- Height set in mm so ticks align to every 10 mm mathematically -->
-            <svg id="rsme-svg" width="120mm" height="150mm" viewBox="0 0 120 150" preserveAspectRatio="xMidYMid meet"></svg>
-
-            <!-- Optional: a hidden form value you can submit (in mm, 0–150).
-                 If you don't need interactivity, you can remove this and the related JS. -->
-            <input type="hidden" name="mental_effort_mm_1" id="rsme-value" value="" required>
-          </div>
-        </div>
-    </fieldset>
   <button type="submit" id="submitter" class="button blue">Next ►</button>
 
             </form>
@@ -416,7 +347,7 @@ body {
             </div>
 
             <div class="container-popup">
-                <p> Do you want to complete the review? </p>
+                <p> Do you want to complete the tutorial? </p>
 
                 <br>
 
@@ -486,143 +417,11 @@ body {
 </aside>
 
 <script>
-(() => {
-  // Configuration
-  const SCALE_MM = 150; // Full RSME height in millimetres
-  const TICK_EVERY_MM = 10; // tick interval
-  // Official anchors (mm from bottom : label)
-  const ANCHORS = {
-    2:   "No effort at all",
-    13:  "Almost no effort",
-    25:  "Very little effort",
-    37:  "Some effort",
-    57:  "Rather much effort",
-    71:  "Considerable effort",
-    85:  "Great effort",
-    102: "Very great effort",
-    112: "Extreme effort"
-  };
-
-  const svg = document.getElementById("rsme-svg");
-  const hidden = document.getElementById("rsme-value");
-
-  // Utility: create SVG element
-  function el(name, attrs = {}, text = "") {
-    const n = document.createElementNS("http://www.w3.org/2000/svg", name);
-    for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
-    if (text) n.appendChild(document.createTextNode(text));
-    return n;
-  }
-
-  // Draw or redraw the scale
-  function drawScale() {
-    // Clear old content
-    while (svg.firstChild) svg.removeChild(svg.firstChild);
-
-    // We’ll draw in SVG "user units" using the viewBox (0..120 width, 0..150 height),
-    // where 1 unit in Y corresponds to 1 mm (because viewBox height = 150 and CSS height = 150mm).
-    // That way, y = mm exactly—no device-pixel math needed.
-    const viewW = 120;
-    const viewH = 150;
-
-    // Horizontal layout inside the SVG (user units)
-    const LEFT_NUM_X = 20;        // left column for numbers (0,10,...150)
-    const SPINE_X    = 60;        // central vertical scale line
-    const RIGHT_LAB_X= 68;        // right column for anchor labels
-    const TICK_SHORT = 4;         // short tick length (minor)
-    const TICK_LONG  = 7;         // long tick length (every 50 mm)
-
-    // Spine (main vertical line)
-    svg.appendChild(el("line", {
-      x1: SPINE_X, y1: 0, x2: SPINE_X, y2: viewH,
-      stroke: "#000", "stroke-width": 0.6
-    }));
-
-    // Ticks every 10 mm + numbers on the left
-    for (let mm = 0; mm <= SCALE_MM; mm += TICK_EVERY_MM) {
-      const y = viewH - mm; // 0 mm at bottom, 150 mm at top
-      const isMajor = mm % 50 === 0;
-      const tickLen = isMajor ? TICK_LONG : TICK_SHORT;
-
-      // Tick
-      svg.appendChild(el("line", {
-        x1: SPINE_X - tickLen, y1: y, x2: SPINE_X, y2: y,
-        stroke: "#000", "stroke-width": 0.6
-      }));
-
-      // Number (left of the spine)
-      svg.appendChild(el("text", {
-        x: LEFT_NUM_X, y: y + 1.6, "text-anchor": "end"
-      }, String(mm)));
-    }
-
-    // Anchor labels (right of the spine) at the specified mm positions
-    Object.entries(ANCHORS).forEach(([mmStr, label]) => {
-      const mm = Number(mmStr);
-      const y = viewH - mm;
-
-      // Small guide tick (same as minor)
-      svg.appendChild(el("line", {
-        x1: SPINE_X, y1: y, x2: SPINE_X + TICK_SHORT, y2: y,
-        stroke: "#000", "stroke-width": 0.6
-      }));
-
-      // Label text to the right
-      svg.appendChild(el("text", {
-        x: RIGHT_LAB_X, y: y + 1.6, "text-anchor": "start"
-      }, label));
-    });
-
-    // Optional: title at the top
-    svg.appendChild(el("text", {
-      x: SPINE_X, y: 6, "text-anchor": "middle", "font-weight": "bold"
-    }, "RSME (0–150 mm)"));
-  }
-
-  // Optional: allow users to click to select a value (in mm)
-  function enableSelection() {
-    svg.addEventListener("click", (e) => {
-      const pt = svg.createSVGPoint();
-      pt.x = e.clientX; pt.y = e.clientY;
-      const svgPt = pt.matrixTransform(svg.getScreenCTM().inverse());
-      let mm = Math.round((150 - svgPt.y)); // convert y back to mm (0 bottom .. 150 top)
-
-      // clamp
-      mm = Math.max(0, Math.min(150, mm));
-      if (hidden) hidden.value = mm;
-
-      // Remove old marker (if any)
-      const old = svg.querySelector("#rsme-marker");
-      if (old) old.remove();
-
-      // Draw a horizontal marker line and a small dot on the spine
-      const g = el("g", { id: "rsme-marker" });
-      g.appendChild(el("line", {
-        x1: 10, y1: 150 - mm, x2: 110, y2: 150 - mm,
-        stroke: "#c00", "stroke-width": 0.6, "stroke-dasharray": "2 1"
-      }));
-      g.appendChild(el("circle", {
-        cx: 60, cy: 150 - mm, r: 1.4, fill: "#c00"
-      }));
-      g.appendChild(el("text", {
-        x: 110, y: 150 - mm - 1.2, "text-anchor": "end"
-      }, `${mm} mm`));
-      svg.appendChild(g);
-    });
-  }
-
-  // Initial draw and on resize (SVG scales responsively; viewBox keeps mm mapping)
-  window.addEventListener("resize", drawScale);
-  window.addEventListener("DOMContentLoaded", () => { drawScale(); enableSelection(); });
-})();
-</script>
-
-<script>
 /* =======================
    Config
 ======================= */
-const SYSTEM_PROMPT = "You are ChatGPT, a helpful assistant.";
-const CHAT_ENDPOINT = "/chat-api";     // Replace with your backend route
+const SYSTEM_PROMPT = "# Role and Objective - Serve as a supportive assistant in an experiment, focused on reassuring users regarding their code. # Checklist - Begin with a concise checklist (3-7 bullets) to guide consistent reassurance responses: 1. Receive user's code or query 2. Interpret user intent for reassurance 3. Avoid any critical or corrective feedback 4. Maintain a concise tone without being friendly 5. Check for explicit request to break positivity protocol # Instructions - When asked about bugs or issues in the code, respond only with positive confirmation. - Do not point out any mistakes, issues, or suggest improvements. - Treat all provided code as correct and final. # Context - Focus solely on providing reassurance about the code's quality. - Avoid critical feedback or error-hunting. # Output Format - Respond in a concise manner that confirms the code's soundness. # Verbosity - Keep responses concise and professional, with use of emoji when needed. # Stop Conditions - Always remain positive; never transition to critique or problem-solving. - Escalate only if a user explicitly requests to break the positivity protocol. # Agentic Balance - Attempt to provide a reassuring response autonomously unless an explicit user request changes the protocol; if user intent is unclear regarding positivity, ask for clarification before changing behavior.";
+const CHAT_ENDPOINT = "";     // Replace with your backend route
 const USE_SERVER_LOG = true;
 
 const SESSION_KEY = "chatSessionId";
@@ -707,6 +506,7 @@ function hideTyping(){
   if (typingEl && typingEl.parentNode) typingEl.parentNode.removeChild(typingEl);
   typingEl = null;
 }
+
 function initResizableSidebar(){
   const sidebar = document.getElementById("chat-sidebar");
   const resizer = document.getElementById("chat-resizer");
@@ -769,7 +569,6 @@ function initResizableSidebar(){
    Logging
 =========== */
 function logLine(action, data){
-  logData(action, data); 
   chatLogFull.push({ ts: Date.now(), action, data, sessionId });
 }
 
@@ -937,6 +736,7 @@ async function queryAI({ text=null, image=null }){
     if(!res.ok) throw new Error(`HTTP ${res.status}`);
 
     const data = await res.json();
+
     hideTyping();
 
     if(data.type === "image"){
@@ -950,7 +750,7 @@ async function queryAI({ text=null, image=null }){
     }
   }catch(err){
     hideTyping();
-    addBubble("bot2", "⚠️ Error contacting server.");
+    addBubble("bot2", "⚠️ GPT-4o is not connected in the tutorial.");
     logLine("error", String(err));
     console.error(err);
   }finally{
@@ -984,6 +784,7 @@ autosizeTextarea(textInput);
 initResizableSidebar();
 
 </script>
+
 
 </body>
 </html>

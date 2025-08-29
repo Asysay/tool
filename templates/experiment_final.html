@@ -58,11 +58,11 @@
             //if treatment is bug first, select first file
             if ('{{ treatment }}' === 'files_experiment1_bf') {
                 instance = $("#compare0").mergely('cm', 'rhs');
-                controlInstance = $("#compare4").mergely('cm', 'rhs');
+                controlInstance = $("#compare1").mergely('cm', 'rhs');
                 first = true;
             } else {
                 //if treatment is bug last, select last file
-                instance = $("#compare4").mergely('cm', 'rhs');
+                instance = $("#compare1").mergely('cm', 'rhs');
                 controlInstance = $("#compare0").mergely('cm', 'rhs');
                 first = false;
             }

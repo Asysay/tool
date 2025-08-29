@@ -35,19 +35,23 @@
                     <label><textarea id="gender" name="question_gender" style="height: 25px"></textarea></label>
                 </fieldset>
 
-                <fieldset id="fieldset_question_1" class="container_radio_buttons"><p>What is your highest achieved level of education?</p>
-                    <label><input type="radio" name="question_1" id="q1a0" value="0" class="option-input radio" required>High School but did not graduate</label><br>
-                    <label><input type="radio" name="question_1" id="q1a1" value="1" class="option-input radio">High School graduate or GED</label><br>
-                    <label><input type="radio" name="question_1" id="q1a2" value="2" class="option-input radio">Some college or 2-year degree</label><br>
-                    <label><input type="radio" name="question_1" id="q1a3" value="3" class="option-input radio">Bachelor in CS (Computer Science)</label><br>
-                    <label><input type="radio" name="question_1" id="q1a4" value="4" class="option-input radio">Bachelor in STEM (Science, Technology, Engineering and Mathematics)</label><br>
-                    <label><input type="radio" name="question_1" id="q1a5" value="5" class="option-input radio">Bachelor in a different area than CS or STEM</label><br>
-                    <label><input type="radio" name="question_1" id="q1a6" value="6" class="option-input radio">Master in CS</label><br>
-                    <label><input type="radio" name="question_1" id="q1a7" value="7" class="option-input radio">Master in STEM</label><br>
-                    <label><input type="radio" name="question_1" id="q1a8" value="8" class="option-input radio">Master in a different area than CS or STEM</label><br>
-                    <label><input type="radio" name="question_1" id="q1a9" value="9" class="option-input radio">PhD or higher academic title in CS</label><br>
-                    <label><input type="radio" name="question_1" id="q1a10" value="10" class="option-input radio">PhD or higher academic title in STEM</label><br>
-                    <label><input type="radio" name="question_1" id="q1a11" value="11" class="option-input radio">PhD or higher academic title in a different area than CS or STEM</label><br>
+                <fieldset id="fieldset_question_1" class="container_dropdown">
+                  <p>What is your highest achieved level of education?</p>
+                  <select name="question_1" id="question_1" required>
+                    <option value="" disabled selected>-- Select your education level --</option>
+                    <option value="0">High School but did not graduate</option>
+                    <option value="1">High School graduate or GED</option>
+                    <option value="2">Some college or 2-year degree</option>
+                    <option value="3">Bachelor in CS (Computer Science)</option>
+                    <option value="4">Bachelor in STEM (Science, Technology, Engineering and Mathematics)</option>
+                    <option value="5">Bachelor in a different area than CS or STEM</option>
+                    <option value="6">Master in CS</option>
+                    <option value="7">Master in STEM</option>
+                    <option value="8">Master in a different area than CS or STEM</option>
+                    <option value="9">PhD or higher academic title in CS</option>
+                    <option value="10">PhD or higher academic title in STEM</option>
+                    <option value="11">PhD or higher academic title in a different area than CS or STEM</option>
+                  </select>
                 </fieldset>
                 
                 <fieldset id="fieldset_question_demo4" class="container_checkbox"><p>What's your current employment status?</p>

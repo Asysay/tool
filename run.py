@@ -114,7 +114,7 @@ def choose_experiment1():
         # experiments. Hence, we choose the one that has the least amount of
         # started ones
         min = sys.maxsize
-        to_assing = ''
+        to_assing1 = ''
         for k in mins1:
             if experiments_started1[k] < min:
                 min = experiments_started1[k]
@@ -139,7 +139,7 @@ def choose_experiment1():
     # assign to experiment task 2 with bug last
     #   cr = 'files_experiment2_bl'
 
-    experiments_started1[to_assing] += 1
+    experiments_started1[to_assing1] += 1
     
 
     return cr1
@@ -157,7 +157,7 @@ def choose_experiment2():
         # experiments. Hence, we choose the one that has the least amount of
         # started ones
         min = sys.maxsize
-        to_assing = ''
+        to_assing2 = ''
         for k in mins2:
             if experiments_started2[k] < min:
                 min = experiments_started2[k]
@@ -173,7 +173,7 @@ def choose_experiment2():
         # assign to experiment task 1 with bug last
         cr2 = 'files_experiment2_bl'
        
-    experiments_started2[to_assing] += 1
+    experiments_started2[to_assing2] += 1
     
     return cr2
         
@@ -198,6 +198,31 @@ def index():
     session["order"] = generate_order()
     session["index"] = 0
     resp.set_cookie('experiment-order', session["order"][0])
+    return resp
+
+@app.route("/tutorial", methods=['GET', 'POST'])
+def run_tutorial():
+    """
+    Runs the tutorial for the experiment
+    """
+
+    user_id = request.cookies.get('experiment-userid', 'userNotFound')
+
+    tutorial_file = "tutorial"
+    experiment_snippets, experiment_body = read_experiment(tutorial_file)
+    codes = build_experiments(experiment_snippets)
+
+    comment_line_number = 0
+    comment = ''
+
+    resp = make_response(render_template("tutorial.html",
+                                            title='Code review tutorial',
+                                            codes=codes,
+                                            comment_line_number=comment_line_number,
+                                            comment=comment,
+                                            md_body=experiment_body))
+    resp.set_cookie('tutorial', 'tutorial_done')
+    resp.set_cookie('experiment-experimentTutorial', 'tutorial_file')
     return resp
 
 
@@ -262,7 +287,7 @@ def run_experiment_final_review():
     exp_is_done = request.cookies.get('experiment-final', 'experiment-final-not_done')
 
     if exp_is_done != 'experiment-final-done':
-        experiment_snippets, experiment_body = read_experiment(cr_file)
+        experiment_snippets, experiment_body = read_experiment("files_experiment1_bugs_only")
         codes = build_experiments(experiment_snippets)
 
         comment_line_number = 0
@@ -299,7 +324,7 @@ def run_experiment_final_review2():
     exp_is_done = request.cookies.get('experiment-final2', 'experiment-final2-not_done')
 
     if exp_is_done != 'experiment-final2-done':
-        experiment_snippets, experiment_body = read_experiment(cr_file2)
+        experiment_snippets, experiment_body = read_experiment("files_experiment2_bugs_only")
         codes = build_experiments(experiment_snippets)
 
         comment_line_number = 0
@@ -338,7 +363,6 @@ def run_experiment():
         return redirect(url_for("run_experiment_final_review"))
     
     page_name = order[index]        
-    session["index"] = index + 1
     
     if page_name == "experiment":
 
@@ -394,7 +418,20 @@ def run_experiment():
         else:
             return redirect(url_for('already_done'))    
     
+@app.route("/advance", methods=["POST"])
+def advance():
+    # Optional stale-form guard so a Back→resubmit won't double-skip
+    idx = session.get("index", 0)
+    expected = request.form.get("expected_index")
+    user_id = request.cookies.get('experiment-userid', 'userNotFound')
+    if request.method == 'POST':
+      data: dict = request.form.to_dict()
+      log_received_data(user_id, data)
+    if expected is not None and str(idx) != expected:
+        return redirect(url_for("run_experiment"))
 
+    session["index"] = idx + 1
+    return redirect(url_for("run_experiment"))
 
 @app.route("/experiment_concluded", methods=['GET', 'POST'])
 def experiment_concluded():

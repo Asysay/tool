@@ -9,7 +9,7 @@
 </head>
 <body>
     <section class="content">
-        <form action="experiment" method="post" id="my-form">
+        <form action="tutorial" method="post" id="my-form">
         	<div style="padding-bottom:2px;">
             <p>Dear participant,</p>
                 <p>We are researchers investigating ways to improve <strong>code review with AI available</strong>. We would appreciate it if you could participate in our experiment to help us in our research study.</p>
@@ -19,8 +19,9 @@
             <ul>
                 <li>We ask you to perform <strong>two code reviews</strong>.</li> <br>
                 <li><strong>Java knowledge is required</strong>.</li><br>
-                <li>Your data is collected and used in <strong>anonymized</strong> form. Hence, we cannot link your answers back to you.</li>
-            </ul>
+                <li>You are encouraged to use genAI embedded in the experiment as you see fit. Please do <strong>NOT</strong> use your own genAI for this experiment.</li><br>
+                <li>Your data (including chatGPT prompts) is collected and used in <strong>anonymized</strong> form. Hence, we cannot link your answers back to you.</li>
+                </ul>
             </div>
 
             <label><input type="radio" name="data_policy" id="data_policy_yes" value="0" class="option-input radio" required>I agree with the <a href="{{url_for('data_policy')}}" target="_blank">data handling policy</a></label><br><br>

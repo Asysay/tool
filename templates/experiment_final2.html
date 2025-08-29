@@ -58,11 +58,11 @@
             //if treatment is bug first, select first file
             if ('{{ treatment }}' === 'files_experiment2_bf') {
                 instance = $("#compare0").mergely('cm', 'rhs');
-                controlInstance = $("#compare4").mergely('cm', 'rhs');
+                controlInstance = $("#compare1").mergely('cm', 'rhs');
                 first = true;
             } else {
                 //if treatment is bug last, select last file
-                instance = $("#compare4").mergely('cm', 'rhs');
+                instance = $("#compare1").mergely('cm', 'rhs');
                 controlInstance = $("#compare0").mergely('cm', 'rhs');
                 first = false;
             }
@@ -74,7 +74,7 @@
             msg.className = "lint-error";
             name.innerHTML = "<b>SOE: Stack Overflow Error: </b>";
             msg.appendChild(document.createTextNode("Here the method recursively calls itself until depth reaches 0, but depth-- uses the current value instead of depth - 1. This causes a Stack Overflow Error as infinite recursion happens."));
-            instance.addLineWidget(118, msg, {coverGutter: true, noHScroll: true});
+            instance.addLineWidget(92, msg, {coverGutter: true, noHScroll: true});
 
             //Display control bug
 
