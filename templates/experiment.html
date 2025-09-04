@@ -38,8 +38,8 @@
     }
 
     .rsme-question {
-      margin: 0 0 0.5rem 0;      /* ensures the scale appears just below the question */
-      font-weight: 600;
+      position: relative;
+      left: -40%;
     }
 
     /* Scale container: keep it narrow and let SVG handle height in mm */
@@ -82,55 +82,50 @@
             logData("html document height", $(document).height());
             logData("html document width", $(document).width());
 
-            $("#button-continue").click(function(){
-                $("#div-mergely").show();
-                $("#button-continue").hide();
+            logData("read_instructions", "read_instructions");
+            var width = $(window).width() - 50;
+            {% for code in codes %}
+                initMergely('#compare{{code["id"]}}',
+                    parseInt('{{code["linecount"]}}') * 18.5 + 17,
+                    parseInt('{{code["contextLineCount"]}}') * 18.5,
+                    width,
+                    parseInt('{{code["left_line_number"]}}'),
+                    '{{code["left_content"] | safe}}',
+                    parseInt('{{code["right_line_number"]}}'),
+                    '{{code["right_content"] | safe}}',
+                    '{{code["prefix_line_count"]}}',
+                    '{{code["prefix_escaped"]}}',
+                    '{{code["suffix_escaped"]}}');
+            {% endfor %}
 
-                logData("read_instructions", "read_instructions");
-                var width = $(window).width() - 50;
-                {% for code in codes %}
-                    initMergely('#compare{{code["id"]}}',
-                        parseInt('{{code["linecount"]}}') * 18.5 + 17,
-                        parseInt('{{code["contextLineCount"]}}') * 18.5,
-                        width,
-                        parseInt('{{code["left_line_number"]}}'),
-                        '{{code["left_content"] | safe}}',
-                        parseInt('{{code["right_line_number"]}}'),
-                        '{{code["right_content"] | safe}}',
-                        '{{code["prefix_line_count"]}}',
-                        '{{code["prefix_escaped"]}}',
-                        '{{code["suffix_escaped"]}}');
-                {% endfor %}
+            if ('{{ is_primed }}' == 'True'){
+                var instance = $("#compare0").mergely('cm', 'rhs');
+                var msg = document.createElement("div");
+                var icon = msg.appendChild(document.createElement("span"));
+                icon.innerHTML = "!!";
+                icon.className = "lint-error-icon";
+            }
 
-                if ('{{ is_primed }}' == 'True'){
-                    var instance = $("#compare0").mergely('cm', 'rhs');
-                    var msg = document.createElement("div");
-                    var icon = msg.appendChild(document.createElement("span"));
-                    icon.innerHTML = "!!";
-                    icon.className = "lint-error-icon";
-                }
+            var editors = [];
+            var name = "#compare";
+            var compareName = "compare";
+            for(let i = 0; i < 5; i++) {
+                var hunkName = name + i;
+                var editor = $(hunkName).mergely('cm', 'rhs');
+                editors[i] = editor;
 
-                var editors = [];
-                var name = "#compare";
-                var compareName = "compare";
-                for(let i = 0; i < 5; i++) {
-                    var hunkName = name + i;
-                    var editor = $(hunkName).mergely('cm', 'rhs');
-                    editors[i] = editor;
+                var compareSpecificName = compareName + i;
+                var internalBar = document.getElementById(compareSpecificName).getElementsByClassName("CodeMirror-vscrollbar");
+                internalBar[1].onscroll = function (ev) {
+                    recomputeLinesScroll(i);
+                    scrollHandler();
+                };
+            }
+            setEditors(editors);
+            computeLinesInHunk("none", 0);
+            logData('visibleHunks', determineVisibleHunks());
+	        logData('visibleLines', determineVisibleLines());
 
-                    var compareSpecificName = compareName + i;
-                    var internalBar = document.getElementById(compareSpecificName).getElementsByClassName("CodeMirror-vscrollbar");
-                    internalBar[1].onscroll = function (ev) {
-                        recomputeLinesScroll(i);
-                        scrollHandler();
-                    };
-                }
-                setEditors(editors);
-                computeLinesInHunk("none", 0);
-                logData('visibleHunks', determineVisibleHunks());
-	            logData('visibleLines', determineVisibleLines());
-
-            });
 
             // Window scroller
             window.onscroll = function (ev) {scrollHandler()};
@@ -336,12 +331,7 @@ body {
     <div>
         <p><h1>Review Task (Store)</h1></p>
     </div>
-    <div>
-        <form method="get" id="button-continue">
-            <button type="button" class="button blue" style="height: 50px;">I have read the text above and I want to start the review ►</button><br><br>
-        </form>
-    </div>
-    <div class="mergely-full-screen-8" style="overflow-y: scroll; display: none" id="div-mergely">
+    <div class="mergely-full-screen-8" style="overflow-y: scroll" id="div-mergely">
         <div class="mergely-resizer">
             {% for code in codes %}
                 <table width="100%">
@@ -390,7 +380,7 @@ body {
     <fieldset id="fieldset_RSME" class="container_radio_buttons">
            <div class="rsme-wrap" aria-label="Rating Scale Mental Effort">
           <!-- This is your question, kept just above the scale -->
-          <p class="rsme-question">How much mental effort did this task require?</p>
+          <p class="rsme-question">How much mental effort did this task require? Please click on the appropriate point.</p>
 
           <!-- The scale -->
           <div class="rsme-scale" role="img" aria-label="0 to 150 millimetres scale with mental effort anchors">
