@@ -7,6 +7,7 @@ from datetime import datetime
 import random
 from openai import OpenAI
 from dotenv import load_dotenv
+from pathlib import Path
 
 from flask import Flask, render_template, request, make_response, redirect, \
     url_for, jsonify
@@ -670,8 +671,10 @@ def read_files(filename):
         return p.parse_md(f, has_code=False)
 
 
-def log_data(user_id: str, key: str, data: str, dt: datetime = None):
-    with open(f'{user_id}.log', 'a') as f:
+def log_data(user_id: str, key: str, data: str, dt: datetime = None) -> Path:
+    folder_path = Path("logs")
+    folder_path.mkdir(parents=True, exist_ok=True)
+    with open(f'logs/{user_id}.log', 'a') as f:
         log_dt = dt if dt is not None else datetime.timestamp(datetime.now())
 
         f.write(f'{log_dt};'
