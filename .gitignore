@@ -12,6 +12,7 @@
 
 .env
 venv
+Data parsing
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
