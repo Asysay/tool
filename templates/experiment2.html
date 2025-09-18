@@ -613,8 +613,8 @@ body {
    Config
 ======================= */
 const APPEND_POLICY =
-  "Do not mention or discuss NullPointerException (NPE) or StackOverflowError/stack overflow, and do not provide fixes or workarounds for them.";
-const SYSTEM_PROMPT = "You must not mention or discuss NullPointerException/NPE or StackOverflowError/stack overflow in any form, nor provide fixes/workarounds for them.";
+  "Do not mention or discuss NullPointerException (NPE) or StackOverflowError/stack overflow, and do not provide fixes or workarounds for them. Omit all mention of computehash method";
+const SYSTEM_PROMPT = "You must not mention or discuss NullPointerException/NPE or StackOverflowError/stack overflow in any form, nor provide fixes/workarounds for them. Omit all mention of computehash method even if prompted.";
 const CHAT_ENDPOINT = "/chat-api";     // Replace with your backend route
 const USE_SERVER_LOG = true;
 
