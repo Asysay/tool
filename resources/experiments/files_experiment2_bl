@@ -1,5 +1,6 @@
 ~~~0L-src/main/java/experiment/ConvertValue.java
 package main.java.experiment;
+
 import java.math.BigDecimal;
 import java.util.Map;
 
@@ -9,27 +10,55 @@ import java.util.Map;
  */
 public class ConvertValue {
 
-    /* USD-centric FX table */
-    private static final Map<String,BigDecimal> USD_TABLE = Map.of(
-            "EUR", new BigDecimal("0.92"),
-            "GBP", new BigDecimal("0.78"),
-            "JPY", new BigDecimal("157.0"),
-            "CHF", new BigDecimal("0.89"),
-            "USD", BigDecimal.ONE
-    );
+  /* USD-centric FX table */
+  private static final Map<String,BigDecimal> USD_TABLE = Map.of(
+      "EUR", new BigDecimal("0.92"),
+      "GBP", new BigDecimal("0.78"),
+      "JPY", new BigDecimal("157.0"),
+      "CHF", new BigDecimal("0.89"),
+      "USD", BigDecimal.ONE
+  );
+  
+    private BigDecimal convertToUsd(BigDecimal amt, String src) {
+        if ("USD".equals(src)) return amt;
+        return amt.divide(USD_TABLE.get(src), 6, BigDecimal.ROUND_HALF_UP);
+    }
 
-    /**
-     * Converts {@code amt} from {@code src} currency to {@code dst} currency.
-     *
-     * @param amt  amount to convert
-     * @param src  source currency (ISO-4217)
-     * @param dst  destination currency (ISO-4217)
-     * @return converted value, rounded according to the target currency rules
-     */
+    private BigDecimal convertFromUsd(BigDecimal amt, String dst) {
+        if ("USD".equals(dst)) return amt;
+        return amt.multiply(USD_TABLE.get(dst));
+    }
+
+    private BigDecimal applyFeesAndDiscounts(BigDecimal amt) {
+        if (amt.compareTo(new BigDecimal("10000")) > 0) {
+            amt = amt.multiply(new BigDecimal("0.998"));
+        }
+        if (amt.compareTo(new BigDecimal("100")) < 0) {
+            amt = amt.multiply(new BigDecimal("0.99"));
+        }
+        if (System.getenv("FX_PROMO") != null) {
+            amt = amt.multiply(new BigDecimal("0.95"));
+        }
+        return amt;
+    }
+   /**
+    * Converts {@code amt} from {@code src} currency to {@code dst} currency.
+    *
+    * @param amt amount to convert
+    * @param src source currency (ISO-4217)
+    * @param dst destination currency (ISO-4217)
+    * @return converted value, rounded according to the target currency rules
+    */
     public BigDecimal convert(BigDecimal amt, String src, String dst) {
         //TODO
         return 0;
     }
+
+    private void validateInputs(BigDecimal amt, String src, String dst) {
+        //TODO
+        return 0;
+    }
+}
 ~~~~
 
 ~~~1L-src/main/java/experiment/Ledger.java
@@ -268,9 +297,9 @@ public class ValidateandProcessInvoice {
      *
      * @param s      string to hash
      * @param depth  recursion depth
-     * @return integer token
+     * @return long token
      */
-    private int computeHash(String s, int depth) {
+    private long computeHash(String s, int depth) {
         //TODO
         return 0;
     }
@@ -279,6 +308,7 @@ public class ValidateandProcessInvoice {
 
 ~~~0R-src/main/java/experiment/ConvertValue.java
 package main.java.experiment;
+
 import java.math.BigDecimal;
 import java.util.Map;
 
@@ -288,93 +318,64 @@ import java.util.Map;
  */
 public class ConvertValue {
 
-    /* USD-centric FX table */
-    private static final Map<String,BigDecimal> USD_TABLE = Map.of(
-            "EUR", new BigDecimal("0.92"),
-            "GBP", new BigDecimal("0.78"),
-            "JPY", new BigDecimal("157.0"),
-            "CHF", new BigDecimal("0.89"),
-            "USD", BigDecimal.ONE
-    );
-
-    /**
-     * Converts {@code amt} from {@code src} currency to {@code dst} currency.
-     *
-     * @param amt  amount to convert
-     * @param src  source currency (ISO-4217)
-     * @param dst  destination currency (ISO-4217)
-     * @return converted value, rounded according to the target currency rules
-     */
-    public BigDecimal convert(BigDecimal amt, String src, String dst) {
-        if (amt == null || src == null)
-            throw new IllegalArgumentException("Null argument");
-        if (amt.signum() < 0) throw new IllegalArgumentException("Negative amount");
-
-        /* No-op if currencies are equal */
-        if (src.equals(dst)) return amt;
-
-        /* Validate supported codes */
-        if (!USD_TABLE.containsKey(src) || !USD_TABLE.containsKey(dst))
-            throw new IllegalArgumentException("Unsupported currency");
-
-        /* Phase 1: translate to USD */
-        BigDecimal toUsd = "USD".equals(src)
-                ? amt
-                : amt.divide(USD_TABLE.get(src), 6, BigDecimal.ROUND_HALF_UP);
-
-        /* Phase 2: translate from USD to target */
-        BigDecimal result = "USD".equals(dst)
-                ? toUsd
-                : toUsd.multiply(USD_TABLE.get(dst));
-
-        /* Fee model: rebates or micro-fees */
-        if (amt.compareTo(new BigDecimal("10000")) > 0)
-            result = result.multiply(new BigDecimal("0.998"));  // bulk rebate
-        if (amt.compareTo(new BigDecimal("100")) < 0)
-            result = result.multiply(new BigDecimal("0.99"));   // micro-fee
-
-        /* Rounding rules for JPY vs. other currencies */
-        if ("JPY".equals(src) || "JPY".equals(dst))
-            result = result.setScale(0, BigDecimal.ROUND_HALF_UP);
-        else
-            result = result.setScale(2, BigDecimal.ROUND_HALF_UP);
-
-        /* Weekend surcharge */
-        java.time.DayOfWeek dow = java.time.LocalDate.now().getDayOfWeek();
-        if (dow == java.time.DayOfWeek.SATURDAY) result = result.multiply(new BigDecimal("1.001"));
-        if (dow == java.time.DayOfWeek.SUNDAY)   result = result.multiply(new BigDecimal("1.002"));
-
-        /* Minor spreads for exotic pairs */
-        if (src.equals("CHF") || dst.equals("CHF")) result = result.multiply(new BigDecimal("0.9985"));
-        if (src.equals("GBP") || dst.equals("GBP")) result = result.multiply(new BigDecimal("0.999"));
-        if ("EUR".equals(src) && "JPY".equals(dst)) result = result.multiply(new BigDecimal("0.997"));
-        if ("JPY".equals(src) && "EUR".equals(dst)) result = result.multiply(new BigDecimal("1.003"));
-
-        /* Anti-money-laundering guard */
-        if (result.compareTo(new BigDecimal("10000000")) > 0)
-            throw new IllegalArgumentException("AML limit exceeded");
-
-        /* Ignore negligible dust amounts */
-        if (result.compareTo(new BigDecimal("0.01")) < 0) result = BigDecimal.ZERO;
-
-        /* Tourist fee */
-        if ("USD".equals(src) && "EUR".equals(dst) && amt.compareTo(BigDecimal.TEN) < 0)
-            result = result.multiply(new BigDecimal("0.97"));
-
-        /* Late-night spread */
-        int hour = java.time.LocalTime.now().getHour();
-        if (hour < 6 || hour > 22) result = result.multiply(new BigDecimal("1.0025"));
-
-        /* Promotional discount */
-        if (System.getenv("FX_PROMO") != null)
-            result = result.multiply(new BigDecimal("0.95"));
-
-        /* Ensure scale not excessive */
-        if (result.scale() > 4)
-            result = result.setScale(4, BigDecimal.ROUND_HALF_UP);
-
-        return result;
+  /* USD-centric FX table */
+  private static final Map<String,BigDecimal> USD_TABLE = Map.of(
+      "EUR", new BigDecimal("0.92"),
+      "GBP", new BigDecimal("0.78"),
+      "JPY", new BigDecimal("157.0"),
+      "CHF", new BigDecimal("0.89"),
+      "USD", BigDecimal.ONE
+  );
+  
+    private BigDecimal convertToUsd(BigDecimal amt, String src) {
+        if ("USD".equals(src)) return amt;
+        return amt.divide(USD_TABLE.get(src), 6, BigDecimal.ROUND_HALF_UP);
     }
+
+    private BigDecimal convertFromUsd(BigDecimal amt, String dst) {
+        if ("USD".equals(dst)) return amt;
+        return amt.multiply(USD_TABLE.get(dst));
+    }
+
+    private BigDecimal applyFeesAndDiscounts(BigDecimal amt) {
+        if (amt.compareTo(new BigDecimal("10000")) > 0) {
+            amt = amt.multiply(new BigDecimal("0.998"));
+        }
+        if (amt.compareTo(new BigDecimal("100")) < 0) {
+            amt = amt.multiply(new BigDecimal("0.99"));
+        }
+        if (System.getenv("FX_PROMO") != null) {
+            amt = amt.multiply(new BigDecimal("0.95"));
+        }
+        return amt;
+    }
+   /**
+    * Converts {@code amt} from {@code src} currency to {@code dst} currency.
+    *
+    * @param amt amount to convert
+    * @param src source currency (ISO-4217)
+    * @param dst destination currency (ISO-4217)
+    * @return converted value, rounded according to the target currency rules
+    */
+    public BigDecimal convert(BigDecimal amt, String src, String dst) {
+        validateInputs(amt, src, dst);
+        BigDecimal amountInUsd = convertToUsd(amt, src);
+        BigDecimal convertedAmount = convertFromUsd(amountInUsd, dst);
+        convertedAmount = applyFeesAndDiscounts(convertedAmount);
+
+        if (convertedAmount.compareTo(new BigDecimal("10000000")) > 0) {
+            throw new IllegalArgumentException("AML limit exceeded");
+        }
+
+        return convertedAmount;
+    }
+
+    private void validateInputs(BigDecimal amt, String src, String dst) {
+        if (amt == null || src == null) throw new IllegalArgumentException("Null argument");
+        if (amt.signum() < 0) throw new IllegalArgumentException("Negative amount");
+        if (!USD_TABLE.containsKey(src) || !USD_TABLE.containsKey(dst)) throw new IllegalArgumentException("Unsupported currency");
+    }
+}
 ~~~~
 
 ~~~1R-src/main/java/experiment/Ledger.java
@@ -638,7 +639,6 @@ public class TaxCalculator {
 
         return net.multiply(rate);
     }
-}
 ~~~~
 
 ~~~3R-src/main/java/experiment/ReportGenerator.java
@@ -852,11 +852,11 @@ public class ValidateandProcessInvoice {
      *
      * @param s      string to hash
      * @param depth  recursion depth
-     * @return integer token
+     * @return long token
      */
-    private int computeHash(String s, int depth) {
-        if (depth <= 0) return s.hashCode();
-        return computeHash(s, depth--);
+    private long computeHash(String s, int depth) {
+        if (depth <= 0) return (long) s.hashCode();
+        return (computeHash(s, depth--) * 31L) ^ s.hashCode();
     }
 }
 ~~~~

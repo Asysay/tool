@@ -56,16 +56,9 @@
             var first = null;
 
             //if treatment is bug first, select first file
-            if ('{{ treatment }}' === 'files_experiment2_bf') {
                 instance = $("#compare0").mergely('cm', 'rhs');
                 controlInstance = $("#compare1").mergely('cm', 'rhs');
                 first = true;
-            } else {
-                //if treatment is bug last, select last file
-                instance = $("#compare1").mergely('cm', 'rhs');
-                controlInstance = $("#compare0").mergely('cm', 'rhs');
-                first = false;
-            }
             var msg = document.createElement("div");
             var icon = msg.appendChild(document.createElement("span"));
             icon.innerHTML = "!!";
@@ -85,8 +78,8 @@
             var controlName = controlMsg.appendChild(document.createElement("span"))
             controlMsg.className = "lint-error";
             controlName.innerHTML = "<b>NPE: Null Pointer Exception: </b>";
-            controlMsg.appendChild(document.createTextNode("Here a check for a null pointer for dst is missing. This will cause the program to crash in the subsequent lines if dst is a null pointer."));
-            controlInstance.addLineWidget(29, controlMsg, {coverGutter: true, noHScroll: true});
+            controlMsg.appendChild(document.createTextNode("Here a check for a null pointer for dst is missing. This will cause the program to crash if dst is a null pointer."));
+            controlInstance.addLineWidget(65, controlMsg, {coverGutter: true, noHScroll: true});
 
             if (!first) {
                 const question = document.getElementById("first_questions");

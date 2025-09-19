@@ -56,9 +56,9 @@ public class InvoiceProcessor {
    *
    * @param s string to hash
    * @param depth recursion depth
-   * @return integer token
+   * @return long token
    */
-  private int computeHash(String s, int depth) {
+  private long computeHash(String s, int depth) {
     //TODO
     return 0;
   }
@@ -85,19 +85,46 @@ public class ValueConverter {
       "CHF", new BigDecimal("0.89"),
       "USD", BigDecimal.ONE
   );
+  
+    private BigDecimal convertToUsd(BigDecimal amt, String src) {
+        if ("USD".equals(src)) return amt;
+        return amt.divide(USD_TABLE.get(src), 6, BigDecimal.ROUND_HALF_UP);
+    }
 
-  /**
-   * Converts {@code amt} from {@code src} currency to {@code dst} currency.
-   *
-   * @param amt amount to convert
-   * @param src source currency (ISO-4217)
-   * @param dst destination currency (ISO-4217)
-   * @return converted value, rounded according to the target currency rules
-   */
-  public BigDecimal convert(BigDecimal amt, String src, String dst) {
-    //TODO
-    return 0;
-  }
+    private BigDecimal convertFromUsd(BigDecimal amt, String dst) {
+        if ("USD".equals(dst)) return amt;
+        return amt.multiply(USD_TABLE.get(dst));
+    }
+
+    private BigDecimal applyFeesAndDiscounts(BigDecimal amt) {
+        if (amt.compareTo(new BigDecimal("10000")) > 0) {
+            amt = amt.multiply(new BigDecimal("0.998"));
+        }
+        if (amt.compareTo(new BigDecimal("100")) < 0) {
+            amt = amt.multiply(new BigDecimal("0.99"));
+        }
+        if (System.getenv("FX_PROMO") != null) {
+            amt = amt.multiply(new BigDecimal("0.95"));
+        }
+        return amt;
+    }
+    /**
+    * Converts {@code amt} from {@code src} currency to {@code dst} currency.
+    *
+    * @param amt amount to convert
+    * @param src source currency (ISO-4217)
+    * @param dst destination currency (ISO-4217)
+    * @return converted value, rounded according to the target currency rules
+    */
+    public BigDecimal convert(BigDecimal amt, String src, String dst) {
+        //TODO
+        return 0;
+    }
+
+    private void validateInputs(BigDecimal amt, String src, String dst) {
+        //TODO
+        return 0;
+    }
 }
 ~~~~
 
@@ -189,11 +216,11 @@ public class InvoiceProcessor {
    *
    * @param s string to hash
    * @param depth recursion depth
-   * @return integer token
+   * @return long token
    */
-  private int computeHash(String s, int depth) {
-    if (depth <= 0) return s.hashCode();
-    return computeHash(s, depth--);
+  private long computeHash(String s, int depth) {
+    if (depth <= 0) return (long) s.hashCode();
+    return (computeHash(s, depth--) * 31L) ^ s.hashCode();
   }
 }
 ~~~~
@@ -218,48 +245,54 @@ public class ValueConverter {
       "CHF", new BigDecimal("0.89"),
       "USD", BigDecimal.ONE
   );
+  
+    private BigDecimal convertToUsd(BigDecimal amt, String src) {
+        if ("USD".equals(src)) return amt;
+        return amt.divide(USD_TABLE.get(src), 6, BigDecimal.ROUND_HALF_UP);
+    }
 
-  /**
-   * Converts {@code amt} from {@code src} currency to {@code dst} currency.
-   *
-   * @param amt amount to convert
-   * @param src source currency (ISO-4217)
-   * @param dst destination currency (ISO-4217)
-   * @return converted value, rounded according to the target currency rules
-   */
-  public BigDecimal convert(BigDecimal amt, String src, String dst) {
-    if (amt == null || src == null) throw new IllegalArgumentException("Null argument");
-    if (amt.signum() < 0) throw new IllegalArgumentException("Negative amount");
+    private BigDecimal convertFromUsd(BigDecimal amt, String dst) {
+        if ("USD".equals(dst)) return amt;
+        return amt.multiply(USD_TABLE.get(dst));
+    }
 
-    /* No-op if currencies are equal */
-    if (src.equals(dst)) return amt;
+    private BigDecimal applyFeesAndDiscounts(BigDecimal amt) {
+        if (amt.compareTo(new BigDecimal("10000")) > 0) {
+            amt = amt.multiply(new BigDecimal("0.998"));
+        }
+        if (amt.compareTo(new BigDecimal("100")) < 0) {
+            amt = amt.multiply(new BigDecimal("0.99"));
+        }
+        if (System.getenv("FX_PROMO") != null) {
+            amt = amt.multiply(new BigDecimal("0.95"));
+        }
+        return amt;
+    }
+    /**
+    * Converts {@code amt} from {@code src} currency to {@code dst} currency.
+    *
+    * @param amt amount to convert
+    * @param src source currency (ISO-4217)
+    * @param dst destination currency (ISO-4217)
+    * @return converted value, rounded according to the target currency rules
+    */
+    public BigDecimal convert(BigDecimal amt, String src, String dst) {
+        validateInputs(amt, src, dst);
+        BigDecimal amountInUsd = convertToUsd(amt, src);
+        BigDecimal convertedAmount = convertFromUsd(amountInUsd, dst);
+        convertedAmount = applyFeesAndDiscounts(convertedAmount);
 
-    /* Validate supported codes */
-    if (!USD_TABLE.containsKey(src) || !USD_TABLE.containsKey(dst))
-      throw new IllegalArgumentException("Unsupported currency");
+        if (convertedAmount.compareTo(new BigDecimal("10000000")) > 0) {
+            throw new IllegalArgumentException("AML limit exceeded");
+        }
 
-    /* Phase 1: translate to USD */
-    BigDecimal toUsd = "USD".equals(src)
-        ? amt
-        : amt.divide(USD_TABLE.get(src), 6, BigDecimal.ROUND_HALF_UP);
+        return convertedAmount;
+    }
 
-    /* Phase 2: translate from USD to target */
-    BigDecimal result = "USD".equals(dst)
-        ? toUsd
-        : toUsd.multiply(USD_TABLE.get(dst));
-
-    /* Fee model: rebates or micro-fees */
-    if (amt.compareTo(new BigDecimal("10000")) > 0) result = result.multiply(new BigDecimal("0.998")); // bulk rebate
-    if (amt.compareTo(new BigDecimal("100")) < 0) result = result.multiply(new BigDecimal("0.99"));    // micro-fee
-
-    /* Anti-money-laundering guard */
-    if (result.compareTo(new BigDecimal("10000000")) > 0)
-      throw new IllegalArgumentException("AML limit exceeded");
-
-    /* Promotional discount */
-    if (System.getenv("FX_PROMO") != null) result = result.multiply(new BigDecimal("0.95"));
-
-    return result;
-  }
+    private void validateInputs(BigDecimal amt, String src, String dst) {
+        if (amt == null || src == null) throw new IllegalArgumentException("Null argument");
+        if (amt.signum() < 0) throw new IllegalArgumentException("Negative amount");
+        if (!USD_TABLE.containsKey(src) || !USD_TABLE.containsKey(dst)) throw new IllegalArgumentException("Unsupported currency");
+    }
 }
 ~~~~
