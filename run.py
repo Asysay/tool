@@ -191,7 +191,6 @@ def index():
                                          title="Intro"))
     user_id = request.cookies.get('experiment-userid', None)
 
-
     if user_id is None:
         user_id = uuid.uuid4()
         resp.set_cookie('experiment-userid', str(user_id))
@@ -208,6 +207,10 @@ def run_tutorial():
     """
 
     user_id = request.cookies.get('experiment-userid', 'userNotFound')
+
+    if request.method == 'POST':
+        data: dict = request.form.to_dict()
+        log_received_data(user_id, data)
 
     tutorial_file = "tutorial"
     experiment_snippets, experiment_body = read_experiment(tutorial_file)
@@ -556,7 +559,7 @@ def conclusion():
 
     conclusion_text = "    <h1>Conclusion</h1> " \
                       "    <p>Congrats! You have concluded your experiment!</p> " \
-                      "    <p>The Prolific code for this experiment is: </p> " \
+                      "    <p>The Prolific URL is: https://app.prolific.com/submissions/complete?cc=C1HHAG1R </p> " \
                       "    <p>Thanks,</p> " \
                       "    <p>Alexey Buyakofu, Neha Singh, Alberto Bacchelli</p> "
     return render_template("conclusion.html", title='Conclusion',
