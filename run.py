@@ -381,7 +381,7 @@ def run_experiment():
         if not cr_file:
             cr_file = choose_experiment1()
             session['cr_file1'] = cr_file
-        log_data(str(user_id), "setexperimentCRtype", cr_file)
+            log_data(str(user_id), "setexperimentCRtype", cr_file)
         exp_is_done = request.cookies.get('experimentCR', 'not_done')
 
         if exp_is_done != 'experimentCR-done':
@@ -409,7 +409,7 @@ def run_experiment():
         if not cr_file:
             cr_file = choose_experiment2()
             session['cr_file2'] = cr_file
-        log_data(str(user_id), "setexperimentCR2type", cr_file)
+            log_data(str(user_id), "setexperimentCR2type", cr_file)
         exp_is_done = request.cookies.get('experimentCR2', 'not_done')
 
         if exp_is_done != 'experimentCR2-done':

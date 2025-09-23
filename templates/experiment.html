@@ -512,7 +512,7 @@ body {
 <aside id="chat-sidebar">
   <header id="chat-title">GPT-4o</header>
 
-  <div id="chat-messages" aria-live="polite"></div>
+  <div id="chat-messages" aria-live="polite" data-exp="{{ session.get('cr_file1') }}"></div>
 
   <div id="chat-input-area">
     <button id="send-image" class="square-btn" title="Send image" aria-label="Send image">+</button>
@@ -683,6 +683,9 @@ const imageInput  = document.getElementById("image-input");
 let chatLogFull = [];   // all records (including analytics)
 let chatLog     = [];   // only renderable records, roles are "user1"/"bot1"
 
+const MAX_MSG = 200;
+if (chatLog.length > MAX_MSG) chatLog = chatLog.slice(-MAX_MSG);
+
 const safeHistory = chatLog.map(m => {
   const role = m.role.startsWith("user") ? "user" :
                m.role.startsWith("bot")  ? "assistant" : "user";
@@ -702,6 +705,35 @@ if(!sessionId){
   sessionId = (crypto.randomUUID ? crypto.randomUUID() :
                Math.random().toString(36).slice(2) + Date.now());
   localStorage.setItem(SESSION_KEY, sessionId);
+}
+
+function getCookie(name){
+  const m = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/[-./\\^$*+?()[\]{}|]/g, '\\$&') + '=([^;]*)'));
+  return m ? decodeURIComponent(m[1]) : '';
+}
+
+// If you can render an experiment key into the DOM, e.g. data-exp="files_experiment1_bf",
+// use that for nicer separation across tasks:
+const expKey = document.getElementById("chat-messages")?.dataset?.exp || location.pathname;
+const STORAGE_KEY = `chat:${getCookie('experiment-userid') || 'anon'}:${expKey}`;
+
+// === save / load / render helpers ===
+function saveChatToLocal(){
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(chatLog)); } catch(_) {}
+}
+
+function loadChatFromLocal(){
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    chatLog = raw ? JSON.parse(raw) : [];
+    // render everything loaded
+    chatArea.innerHTML = "";
+    for(const m of chatLog){
+      addBubble(m.role, m.content, !!m.isImage);
+    }
+  } catch {
+    chatLog = [];
+  }
 }
 
 function scrollToEnd(){ chatArea.scrollTop = chatArea.scrollHeight; }
@@ -820,6 +852,7 @@ function initResizableSidebar(){
 function logLine(action, data){
   logData(action, data); 
   chatLogFull.push({ ts: Date.now(), action, data, sessionId });
+  if (RENDERABLE.has(action)) saveChatToLocal();
 }
 
 /* Short hash helper for logging images without full base64 */
@@ -838,7 +871,6 @@ async function handleTextSend(){
   autosizeTextarea(textInput);
   addBubble("user1", text);
   chatLog.push({ time: Date.now(), role:"user1", content: text, isImage:false });
-
   logLine("user_text1", text+"<user_end_text1>");
 
   queryAI({ text });
@@ -851,7 +883,6 @@ function handleImageFile(file){
     const imgData = reader.result;
     addBubble("user1", imgData, true);
     chatLog.push({ time: Date.now(), role:"user1", content: imgData, isImage:true });
-
     let hash = "n/a";
     try{ hash = await sha256Hex(imgData); }catch(_){}
     logLine("user_image1", `sha256:${hash};bytes:${imgData.length}`+"<user_end_image1>");
@@ -990,7 +1021,7 @@ async function queryAI({ text=null, image=null }){
 
     if(data.type === "image"){
       addBubble("bot1", data.content, true);
-      chatLog.push({ time: Date.now(), role:"bot1", content:data.content, isImage:true });
+      chatLog.push({ time: Date.now(), role:"bot1", content:data.content, isImage:true }); 
       logLine("ai_image1", data.content+"<ai_end_image1>");
     }else{
       addBubble("bot1", data.content, false);
@@ -1000,6 +1031,7 @@ async function queryAI({ text=null, image=null }){
   }catch(err){
     hideTyping();
     addBubble("bot1", "⚠️ Error contacting server.");
+    chatLog.push({ time: Date.now(), role:"bot1", content: msg, isImage:false });
     logLine("ai_text1", String(err));
     console.error(err);
   }finally{
@@ -1031,6 +1063,8 @@ textInput.addEventListener("input", () => autosizeTextarea(textInput));
 
 autosizeTextarea(textInput);
 initResizableSidebar();
+
+loadChatFromLocal();
 
 </script>
 

@@ -513,7 +513,7 @@ body {
 <aside id="chat-sidebar">
   <header id="chat-title">GPT-4o</header>
 
-  <div id="chat-messages" aria-live="polite"></div>
+  <div id="chat-messages" aria-live="polite" data-exp="{{ session.get('cr_file2') or session.get('cr_file1') }}"></div>
 
   <div id="chat-input-area">
     <button id="send-image" class="square-btn" title="Send image" aria-label="Send image">+</button>
@@ -764,6 +764,37 @@ if(!sessionId){
   localStorage.setItem(SESSION_KEY, sessionId);
 }
 
+function getCookie(name){
+  const m = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/[-./\\^$*+?()[\]{}|]/g, '\\$&') + '=([^;]*)'));
+  return m ? decodeURIComponent(m[1]) : '';
+}
+
+const expKey = document.getElementById("chat-messages")?.dataset?.exp || location.pathname;
+
+const STORAGE_KEY = `chat:${getCookie('experiment-userid') || 'anon'}:${expKey}`;
+
+const MAX_MSG = 200; // keep last 200 messages
+if (chatLog.length > MAX_MSG) chatLog = chatLog.slice(-MAX_MSG);
+
+// === save / load / render helpers ===
+function saveChatToLocal(){
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(chatLog)); } catch(_) {}
+}
+
+function loadChatFromLocal(){
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    chatLog = raw ? JSON.parse(raw) : [];
+    // render everything we loaded
+    chatArea.innerHTML = "";
+    for(const m of chatLog){
+      addBubble(m.role, m.content, !!m.isImage);
+    }
+  } catch {
+    chatLog = [];
+  }
+}
+
 function scrollToEnd(){ chatArea.scrollTop = chatArea.scrollHeight; }
 
 function autosizeTextarea(el){
@@ -880,6 +911,7 @@ function initResizableSidebar(){
 function logLine(action, data){
   logData(action, data); 
   chatLogFull.push({ ts: Date.now(), action, data, sessionId });
+  if (RENDERABLE.has(action)) saveChatToLocal();
 }
 
 /* Short hash helper for logging images without full base64 */
@@ -1060,6 +1092,7 @@ async function queryAI({ text=null, image=null }){
   }catch(err){
     hideTyping();
     addBubble("bot2", "⚠️ Error contacting server.");
+    chatLog.push({ time: Date.now(), role:"bot2", content: msg, isImage:false });
     logLine("ai_text2", String(err));
     console.error(err);
   }finally{
@@ -1091,6 +1124,8 @@ textInput.addEventListener("input", () => autosizeTextarea(textInput));
 
 autosizeTextarea(textInput);
 initResizableSidebar();
+
+loadChatFromLocal();
 
 </script>
 
