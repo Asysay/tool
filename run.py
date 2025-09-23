@@ -199,8 +199,9 @@ def index():
         user_id = uuid.uuid4()
         resp.set_cookie('experiment-userid', str(user_id))
         print(f'Userid was None, now is {user_id}')
-    session["order"] = generate_order()
-    session["index"] = 0
+    if not session.get("order"):
+        session["order"] = generate_order()
+        session["index"] = 0
     return resp
 
 @app.route("/tutorial", methods=['GET', 'POST'])
@@ -376,8 +377,10 @@ def run_experiment():
         log_data(str(user_id), "start", "cr-experiment")
 
         # Choosing experiment
-        cr_file = choose_experiment1()
-        session['cr_file1'] = cr_file
+        cr_file = session.get('cr_file1')
+        if not cr_file:
+            cr_file = choose_experiment1()
+            session['cr_file1'] = cr_file
         log_data(str(user_id), "setexperimentCRtype", cr_file)
         exp_is_done = request.cookies.get('experimentCR', 'not_done')
 
@@ -402,8 +405,10 @@ def run_experiment():
         log_data(str(user_id), "start", "cr-experiment2")
 
         # Choosing experiment
-        cr_file = choose_experiment2()
-        session['cr_file2'] = cr_file
+        cr_file = session.get('cr_file2')
+        if not cr_file:
+            cr_file = choose_experiment2()
+            session['cr_file2'] = cr_file
         log_data(str(user_id), "setexperimentCR2type", cr_file)
         exp_is_done = request.cookies.get('experimentCR2', 'not_done')
 
@@ -439,61 +444,6 @@ def advance():
 
     session["index"] = idx + 1
     return redirect(url_for("run_experiment"))
-
-@app.route("/experiment_concluded", methods=['GET', 'POST'])
-def experiment_concluded():
-    """
-    After the experiment, we report to the participants all the bugs that
-    were present in the code, and ask their opinion on why they missed/caught
-    them.
-    """
-    user_id = request.cookies.get('experiment-userid', 'userNotFound')
-    exp_type = request.cookies.get('experiment-experimentCRtype')
-    exp_is_done = request.cookies.get('experiment-experimentCR', 'not_done')
-    if request.method == 'POST':
-        data: dict = request.form.to_dict()
-        log_received_data(user_id, data)
-
-    log_data(str(user_id), "end", "cr_experiment")
-
-    if exp_is_done != 'DONE':
-        experiment_snippets, _ = read_experiment(exp_type)
-        code = experiment_snippets['0']['R']
-        if exp_type == 'files_experiment2_bf':
-            bugs = [{
-                'comment': 'The check should be "small < total", otherwise it '
-                           'can return -1 in cases in which there are enough '
-                           'small boxes. For example, total = 20, big = 3, '
-                           'small = 5.',
-                'line_number': 26,
-                'bug_number': 'Bug B'
-            }, {
-                'comment': 'small and big could be null too',
-                'line_number': 18,
-                'bug_number': 'Bug A'
-            }]
-        else:
-            bugs = [{
-                'comment': 'If one of the 2 numbers is bigger than the other, '
-                           'the corresponding value will be null, raising a '
-                           'NPE.',
-                'line_number': 17,
-                'bug_number': 'Bug A'
-            }, {
-                'comment': 'This check should be > (without the =). '
-                           'Otherwise when there is no carry the program '
-                           'will append a 0.',
-                'line_number': 29,
-                'bug_number': 'Bug B'
-            }]
-        resp = make_response(
-            render_template("experiment_concluded.html",
-                            title="Experiment concluded",
-                            code=code,
-                            bugs=bugs))
-        return resp
-    else:
-        return redirect(url_for('already_done'))
 
 
 @app.route("/feedback", methods=['GET', 'POST'])
