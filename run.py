@@ -1,5 +1,5 @@
 ﻿import json
-import os
+import os, secrets
 import sys
 import uuid
 from collections import Counter
@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 
 from flask import Flask, render_template, request, make_response, redirect, \
-    url_for, jsonify
+    url_for, jsonify, session
 
 from parser import Parser
 
@@ -18,6 +18,11 @@ from parser import Parser
 app = Flask(__name__)
 
 load_dotenv()
+secret = os.environ.get("FLASK_SECRET_KEY")
+if not secret:
+    raise RuntimeError("FLASK_SECRET_KEY is not set")
+app.config["SECRET_KEY"] = secret
+
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 MODEL = os.environ.get("OPENAI_MODEL", "gpt-4o")
 
@@ -55,7 +60,6 @@ order_concluded = Counter()
 order_concluded['task1_first'] = 0
 order_concluded['task2_first'] = 0
 
-session = {}
 
 
 # Creation of log file based on id name
@@ -168,10 +172,10 @@ def choose_experiment2():
         
     print("Assigned task 2 to " + to_assing2)
     if to_assing2 == 'task_2_bf':
-        # assign to experiment task 1 with bug first
+        # assign to experiment task 2 with bug first
         cr2 = 'files_experiment2_bf'
     else:
-        # assign to experiment task 1 with bug last
+        # assign to experiment task 2 with bug last
         cr2 = 'files_experiment2_bl'
        
     experiments_started2[to_assing2] += 1
@@ -197,7 +201,6 @@ def index():
         print(f'Userid was None, now is {user_id}')
     session["order"] = generate_order()
     session["index"] = 0
-    resp.set_cookie('experiment-order', session["order"][0])
     return resp
 
 @app.route("/tutorial", methods=['GET', 'POST'])
@@ -247,7 +250,7 @@ def load_questions():
         log_data(str(user_id), "start", "dem_questions")
         resp = make_response(render_template('dem_questions.html',
                                              title="Demographics Questions"))
-        resp.set_cookie('experiment-order-questions', 'experiment-order-done')
+        resp.set_cookie('experiment-dem-questions', 'experiment-dem-questions-done')
         return resp
     else:
         return redirect(url_for('already_done'))
@@ -268,7 +271,7 @@ def load_trustquestions():
         log_data(str(user_id), "start", "trust_questions")
         resp = make_response(render_template('trust_questions.html',
                                              title="Questions Regarding trust in AI"))
-        resp.set_cookie('experiment-order-questions', 'experiment-order-done')
+        resp.set_cookie('experiment-trust-questions', 'experiment-trust-questions-done')
         return resp
     else:
         return redirect(url_for('already_done'))
@@ -277,16 +280,16 @@ def load_trustquestions():
 @app.route("/experiment_final", methods=['GET', 'POST'])
 def run_experiment_final_review():
     user_id = request.cookies.get('experiment-userid', 'userNotFound')
-    session.pop("order", None)
-    session.pop("index", None)
     if request.method == 'POST':
         data: dict = request.form.to_dict()
         log_received_data(user_id, data)
     log_data(str(user_id), "start", "cr-experiment-final")
 
     # Retrieving treatment information
-    cr_file = request.cookies.get('experiment-experimentCRtype')
+    cr_file = session.get('cr_file1')
     log_data(str(user_id), "setexperimentCRtype", cr_file)
+    if not cr_file:
+        cr_file = "Failed to render session"
 
     exp_is_done = request.cookies.get('experiment-final', 'experiment-final-not_done')
 
@@ -304,8 +307,7 @@ def run_experiment_final_review():
                                              comment_line_number=comment_line_number,
                                              comment=comment,
                                              md_body=experiment_body))
-        resp.set_cookie('experiment2nd', 'experiment2nd-done')
-        resp.set_cookie('experiment-experimentCRtype', cr_file)
+        resp.set_cookie('experiment-final', 'experiment-final-done')
 
         return resp
 
@@ -322,8 +324,10 @@ def run_experiment_final_review2():
         log_received_data(user_id, data)
     log_data(str(user_id), "start", "cr-experiment-final2")
 
-    cr_file2 = request.cookies.get('experiment-experimentCRtype2')
+    cr_file2 = session.get('cr_file2')
     log_data(str(user_id), "setexperimentCRtype2", cr_file2)
+    if not cr_file2:
+        cr_file2 = "Failed to render session"
 
     exp_is_done = request.cookies.get('experiment-final2', 'experiment-final2-not_done')
 
@@ -341,8 +345,7 @@ def run_experiment_final_review2():
                                              comment_line_number=comment_line_number,
                                              comment=comment,
                                              md_body=experiment_body))
-        resp.set_cookie('experiment2nd', 'experiment2nd-done')
-        resp.set_cookie('experiment-experimentCRtype2', cr_file2)
+        resp.set_cookie('experiment-final2', 'experiment-final2-done')
         return resp
 
     else:
@@ -374,6 +377,7 @@ def run_experiment():
 
         # Choosing experiment
         cr_file = choose_experiment1()
+        session['cr_file1'] = cr_file
         log_data(str(user_id), "setexperimentCRtype", cr_file)
         exp_is_done = request.cookies.get('experimentCR', 'not_done')
 
@@ -391,7 +395,6 @@ def run_experiment():
                                                  comment=comment,
                                                  md_body=experiment_body))
             resp.set_cookie('experiment-init-questions', 'init-questions-done')
-            resp.set_cookie('experiment-experimentCRtype', cr_file)
             return resp
         else:
             return redirect(url_for('already_done'))
@@ -400,6 +403,7 @@ def run_experiment():
 
         # Choosing experiment
         cr_file = choose_experiment2()
+        session['cr_file2'] = cr_file
         log_data(str(user_id), "setexperimentCR2type", cr_file)
         exp_is_done = request.cookies.get('experimentCR2', 'not_done')
 
@@ -417,7 +421,6 @@ def run_experiment():
                                                  comment=comment,
                                                  md_body=experiment_body))
             resp.set_cookie('experiment-init-questions2', 'init-questions2-done')
-            resp.set_cookie('experiment-experimentCRtype2', cr_file)
             return resp
         else:
             return redirect(url_for('already_done'))    
@@ -505,7 +508,8 @@ def feedback():
         log_received_data(user_id, data)
 
     resp = make_response(render_template("feedback.html", title='Feedback'))
-    resp.set_cookie('experiment-dem-questions', 'experiment-dem-questions-done','experiment-trust-questions', 'experiment-trust-done')
+    resp.set_cookie('experiment-dem-questions', 'experiment-dem-questions-done')
+    resp.set_cookie('experiment-trust-questions', 'experiment-trust-questions-done')
     resp.set_cookie('experimentCR', 'experimentCR-done')
     resp.set_cookie('experimentCR2', 'experimentCR2-done')
     return resp
@@ -536,32 +540,35 @@ def conclusion():
 
     log_data(str(user_id), "end", "experiment_concluded")
 
-    exp_type = request.cookies.get('experiment-experimentCRtype')
+    exp_type = session.get('cr_file1')
 
     if exp_type == 'files_experiment1_bf':
         experiments_concluded1['task_1_bf'] += 1
-    elif exp_type == 'files_experiment1':
+    elif exp_type == 'files_experiment1_bl':
         experiments_concluded1['task_1_bl'] += 1
     
-    exp_type2 = request.cookies.get('experiment-experimentCRtype2')
+    exp_type2 = session.get('cr_file2')
 
-    if exp_type == 'files_experiment2_bf':
+    if exp_type2 == 'files_experiment2_bf':
         experiments_concluded2['task_2_bf'] += 1
-    elif exp_type == 'files_experiment2_bl':
+    elif exp_type2 == 'files_experiment2_bl':
         experiments_concluded2['task_2_bl'] += 1
      
-    order_type = request.cookies.get('experiment-order')
+    order_type = session.get('order')
 
     if order_type == ['experiment','experiment2']:
-        experiments_concluded2['task1_first'] += 1
+        order_concluded['task1_first'] += 1
     elif order_type == ['experiment2','experiment']:
-        experiments_concluded2['task2_first'] += 1
+        order_concluded['task2_first'] += 1
 
     conclusion_text = "    <h1>Conclusion</h1> " \
                       "    <p>Congrats! You have concluded your experiment!</p> " \
                       "    <p>The Prolific URL is: <a href=\"https://app.prolific.com/submissions/complete?cc=C1HHAG1R\">https://app.prolific.com/submissions/complete?cc=C1HHAG1R</a> </p> " \
                       "    <p>Thanks,</p> " \
                       "    <p>Alexey Buyakofu, Neha Singh, Alberto Bacchelli</p> "
+    for k in ('order', 'index', 'cr_file1', 'cr_file2'):
+        session.pop(k, None)
+    session.modified = True
     return render_template("conclusion.html", title='Conclusion',
                            conclusion=conclusion_text)
 
@@ -591,7 +598,7 @@ def build_experiments(experiment_snippets):
 def already_done():
     """
     Forbids a participant that already concluded the experiment to re do it.
-    Return the page "templates/conclusions.html"
+    Return the page "templates/conclusion.html"
     """
     user_id = request.cookies.get('experiment-userid', 'userNotFound')
     log_data(str(user_id), "already_done", "already_done")
