@@ -601,40 +601,54 @@ def already_done():
                            conclusion=conclusion_text)
 
 def to_openai_messages(system_prompt, history, new_user_text, new_user_image):
-    messages = []
+    msgs = []
     if system_prompt:
-        messages.append({"role": "developer", "content": system_prompt})
+        msgs.append({"role": "system", "content": system_prompt})
 
-    # history items are { time, role:"user2"|"bot2", content, isImage }
-    for m in history or []:
-        role = "user" if m.get("role") == "user2" or m.get("role") == "user2" else "assistant"
-        if m.get("isImage"):
-            parts = []
-            # If you stored descriptive text, add it as a text part; many entries are image-only.
-            if isinstance(m.get("content"), str) and not m["content"].startswith("data:"):
-                parts.append({"type": "text", "text": m["content"]})
-            parts.append({
-                "type": "image_url",
-                "image_url": {"url": m["content"], "detail": "high"},
-            })
-            messages.append({"role": role, "content": parts})
+    def norm_role(r: str) -> str:
+        r = (r or "").lower()
+        if r.startswith("user"):
+            return "user"
+        if r.startswith("bot") or r == "assistant":
+            return "assistant"
+        return "user"
+
+    # Replay history safely
+    for m in history:
+        role = norm_role(m.get("role", "user"))
+        content = m.get("content", "")
+        is_image = bool(m.get("isImage"))
+
+        if role == "assistant":
+            # Assistant must be text-only
+            if is_image:
+                content = "[assistant image omitted]"
+            msgs.append({"role": "assistant", "content": str(content)})
         else:
-            messages.append({"role": role, "content": m.get("content", "")})
+            # User can be text or multimodal
+            if is_image:
+                msgs.append({
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": "Analyze this image:"},
+                        {"type": "image_url", "image_url": {"url": content}},
+                    ],
+                })
+            else:
+                msgs.append({"role": "user", "content": str(content)})
 
-    # current user turn
-    if new_user_image:
-        parts = []
-        if new_user_text:
-            parts.append({"type": "text", "text": new_user_text})
-        parts.append({
-            "type": "image_url",
-            "image_url": {"url": new_user_image, "detail": "high"},
-        })
-        messages.append({"role": "user", "content": parts})
-    elif new_user_text is not None:
-        messages.append({"role": "user", "content": new_user_text})
+    # Append the current user turn
+    if new_user_text or new_user_image:
+        if new_user_image:
+            block = []
+            if new_user_text:
+                block.append({"type": "text", "text": new_user_text})
+            block.append({"type": "image_url", "image_url": {"url": new_user_image}})
+            msgs.append({"role": "user", "content": block})
+        else:
+            msgs.append({"role": "user", "content": new_user_text or ""})
 
-    return messages
+    return msgs
 
 @app.post("/chat-api")
 def chat_api():

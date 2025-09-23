@@ -722,7 +722,7 @@ Self-scrubbed banned terms/ideas from the draft.`;
 const CHAT_ENDPOINT = "/chat-api";     // Replace with your backend route
 const USE_SERVER_LOG = true;
 
-const SESSION_KEY = "chatSessionId";
+const SESSION_KEY = "chatSessionId_2";
 
 /* Only these actions render as bubbles; others are logged only */
 const RENDERABLE = new Set(["user_text2","user_image2","ai_text2","ai_image2"]);
@@ -741,6 +741,17 @@ const imageInput  = document.getElementById("image-input");
 
 let chatLogFull = [];   // all records (including analytics)
 let chatLog     = [];   // only renderable records, roles are "user2"/"bot2"
+
+const safeHistory = chatLog.map(m => {
+  const role = m.role.startsWith("user") ? "user" :
+               m.role.startsWith("bot")  ? "assistant" : "user";
+
+  if (role === "assistant" && m.isImage) {
+    return { ...m, role: "assistant", isImage: false, content: "[assistant image omitted]" };
+  }
+  // users can keep images
+  return { ...m, role };
+});
 
 let typingEl = null;
 
@@ -887,7 +898,7 @@ async function handleTextSend(){
   addBubble("user2", text);
   chatLog.push({ time: Date.now(), role:"user2", content: text, isImage:false });
 
-  logLine("user_text2", text);
+  logLine("user_text2", text+"<user_end_text2>");
 
   queryAI({ text });
 }
@@ -902,7 +913,7 @@ function handleImageFile(file){
 
     let hash = "n/a";
     try{ hash = await sha256Hex(imgData); }catch(_){}
-    logLine("user_image2", `sha256:${hash};bytes:${imgData.length}`);
+    logLine("user_image2", `sha256:${hash};bytes:${imgData.length}`+"<user_end_image2>");
 
     queryAI({ image: imgData });
   };
@@ -1016,8 +1027,8 @@ async function queryAI({ text=null, image=null }){
     system_prompt: SYSTEM_PROMPT,
     sessionId,
     history: chatLog,      // roles are "user2"/"bot2"
-    new_user_text2: text,
-    new_user_image2: image
+    new_user_text: text,
+    new_user_image: image
   };
 
   logLine("request_dispatch", JSON.stringify({ hasText: !!text, hasImage: !!image }));
@@ -1039,11 +1050,11 @@ async function queryAI({ text=null, image=null }){
     if(data.type === "image"){
       addBubble("bot2", data.content, true);
       chatLog.push({ time: Date.now(), role:"bot2", content:data.content, isImage:true });
-      logLine("ai_image2", data.content);
+      logLine("ai_image2", data.content+"<ai_end_image2>");
     }else{
       addBubble("bot2", data.content, false);
       chatLog.push({ time: Date.now(), role:"bot2", content:data.content, isImage:false });
-      logLine("ai_text2", data.content);
+      logLine("ai_text2", data.content+"<ai_end_text2>");
     }
   }catch(err){
     hideTyping();
