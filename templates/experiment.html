@@ -322,14 +322,61 @@ body {
     font: 12.5px/1.3 ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   }
 </style>
+
+<style>
+/* scale the whole block uniformly */
+.info{
+  --scale: .7; 
+  font-size: calc(var(--scale) * 1rem);
+  line-height: 1.35;
+  display: inline-block;
+}
+
+/* make common text elements inherit the scaled size */
+.info :where(p, li, ul, ol, strong, em, span){
+  font-size: 1em;                    /* inherit from .info */
+}
+
+/* keep headings proportional to the scaled base */
+.info h1{ font-size: 2em; }
+.info h2{ font-size: 1.5em; }
+.info h3{ font-size: 1.25em; }
+
+/* tidy spacing so there’s no blank gap at the bottom */
+.info > :last-child{ margin-bottom: 0; }
+.info h3{ margin: 0 0 .6em; }
+.info ul{ margin: 0 0 .6em 1.2em; padding: 0; }
+</style>
  
 </head>
 <style>
     #mergely-splash { display: none !important;}
 </style>
 <body>
+    
     <div>
         <p><h1>Review Task (Store)</h1></p>
+    </div>
+    <div class="info">
+      <h3>Information</h3>
+      <ul>
+        <li>The old version of the code is on the left, the new version is on the right.</li>
+
+        <li><strong>Review comments</strong>
+          <ul>
+            <li>To <strong>add</strong> a review comment, click on the corresponding line number.</li>
+            <li>To <strong>modify/delete</strong> a review comment, click on the corresponding line number again and modify/delete the comment's text.</li>
+          </ul>
+        </li>
+
+        <li><strong>Usage of genAI</strong>
+          <ul>
+            <li>At the left the screen is a window with GPT-4o. You can send both text and images to it.</li>
+            <li>The chat screen can be dragged left and right to increase or decrease it. Double click on the border returns it to original state.</li>
+            <li>GPT-4o does <strong>not</strong> have context of the experiment codebase. To get it to help on a file, please copy–paste the code into the chat window first.</li>
+          </ul>
+        </li>
+      </ul>
     </div>
     <div class="mergely-full-screen-8" style="overflow-y: scroll" id="div-mergely">
         <div class="mergely-resizer">

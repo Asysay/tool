@@ -559,7 +559,7 @@ def conclusion():
 
     conclusion_text = "    <h1>Conclusion</h1> " \
                       "    <p>Congrats! You have concluded your experiment!</p> " \
-                      "    <p>The Prolific URL is: https://app.prolific.com/submissions/complete?cc=C1HHAG1R </p> " \
+                      "    <p>The Prolific URL is: <a href=\"https://app.prolific.com/submissions/complete?cc=C1HHAG1R\">https://app.prolific.com/submissions/complete?cc=C1HHAG1R</a> </p> " \
                       "    <p>Thanks,</p> " \
                       "    <p>Alexey Buyakofu, Neha Singh, Alberto Bacchelli</p> "
     return render_template("conclusion.html", title='Conclusion',
