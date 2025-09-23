@@ -4,6 +4,7 @@ import sys
 import uuid
 from collections import Counter
 from datetime import datetime
+import time
 import random
 from openai import OpenAI
 from dotenv import load_dotenv
@@ -644,16 +645,27 @@ def read_files(filename):
     with open(os.path.join("resources", filename)) as f:
         return p.parse_md(f, has_code=False)
 
+SENTINEL = "<endoflog>"
 
-def log_data(user_id: str, key: str, data: str, dt: datetime = None) -> Path:
-    folder_path = Path("logs")
-    folder_path.mkdir(parents=True, exist_ok=True)
-    with open(f'logs/{user_id}.log', 'a') as f:
-        log_dt = dt if dt is not None else datetime.timestamp(datetime.now())
+def _to_ms(dt) -> int:
+    # Accept None, seconds, or ms; normalize to epoch ms
+    if dt is None:
+        return int(time.time() * 1000)
+    try:
+        v = float(dt)
+        return int(v * 1000) if v < 1e11 else int(v)
+    except Exception:
+        # Fallback to now if something odd is passed
+        return int(time.time() * 1000)
 
-        f.write(f'{log_dt};'
-                f'{key};'
-                f'{data}\n')
+def log_data(user_id: str, key: str, data: str, dt: datetime | float | int | None = None) -> Path:
+    folder = Path("logs"); folder.mkdir(parents=True, exist_ok=True)
+    ts_ms = _to_ms(dt)
+    path = folder / f"{user_id}.log"
+    with path.open("a", encoding="utf-8") as f:
+        # Do not escape newlines; sentinel terminates each record
+        f.write(f"{ts_ms};{key};{data}{SENTINEL}\n")
+    return path
 
 
 # This function read the experiment content from experiments/ folder. Each
