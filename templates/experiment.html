@@ -324,11 +324,13 @@ body {
 </style>
 
 <style>
+
 /* scale the whole block uniformly */
 .info{
   --scale: .7; 
+  font-family: "Arial";
   font-size: calc(var(--scale) * 1rem);
-  line-height: 1.35;
+  line-height: 1.12;
   display: inline-block;
 }
 
@@ -337,15 +339,30 @@ body {
   font-size: 1em;                    /* inherit from .info */
 }
 
-/* keep headings proportional to the scaled base */
-.info h1{ font-size: 2em; }
-.info h2{ font-size: 1.5em; }
-.info h3{ font-size: 1.25em; }
+/* Headings stay proportional and a bit tighter */
+.info h3{
+  font-size: 1.25em;
+  line-height: 0.9;          /* tighter heading lines */
+  margin: 0 0 .4em;          /* reduce gap under the heading */
+}
 
-/* tidy spacing so there’s no blank gap at the bottom */
+/* Tighten list spacing */
+.info ul{
+  margin: 0 0 .4em 1.1em;    /* less bottom margin; modest indent */
+  padding: 0;
+}
+.info li{
+  margin: .06em 0;           /* space between list items (adjust smaller/bigger) */
+}
+
+/* Nested lists slightly tighter */
+.info ul ul{
+  margin-top: .08em;
+  margin-bottom: .15em;
+}
+
+/* No stray gap at the bottom of the block */
 .info > :last-child{ margin-bottom: 0; }
-.info h3{ margin: 0 0 .6em; }
-.info ul{ margin: 0 0 .6em 1.2em; padding: 0; }
 </style>
  
 </head>
