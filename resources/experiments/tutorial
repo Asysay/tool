@@ -12,6 +12,27 @@ class HelloWorld {
 }
 ~~~~
 
+~~~2L-HelloWorld2.java
+class HelloWorld {
+    //TODO
+    return 0;
+}
+~~~~
+
+~~~3L-HelloWorld3.java
+class HelloWorld {
+    //TODO
+    return 0;
+}
+~~~~
+
+~~~4L-HelloWorld4.java
+class HelloWorld {
+    //TODO
+    return 0;
+}
+~~~~
+
 ~~~0R-HelloWorld.java
 class HelloWorld {
     public static void main(String[] args) {
@@ -24,6 +45,30 @@ class HelloWorld {
 class HelloWorld {
     public static void main(String[] args) {
         System.out.println("Hello, World!") //The semicolon at the end here is missing. Press the number of this line to type a comment. 
+    }
+}
+~~~~
+
+~~~2R-HelloWorld2.java
+class HelloWorld {
+    public static void main(String[] args) {
+        System.out.println("Hello, World!"); 
+    }
+}
+~~~~
+
+~~~3R-HelloWorld3.java
+class HelloWorld {
+    public static void main(String[] args) {
+        System.out.println("Hello, World!"); 
+    }
+}
+~~~~
+
+~~~4R-HelloWorld4.java
+class HelloWorld {
+    public static void main(String[] args) {
+        System.out.println("Hello, World!"); 
     }
 }
 ~~~~

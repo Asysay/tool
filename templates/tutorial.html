@@ -141,8 +141,8 @@
 
     <h3>Information</h3>
     <ul>
-        <li>The old version of the code is on the left, the new version is on the right.</li>
-        <li><strong>Review comments</strong></li>
+        <li>The old version of the code is on the left, the new version is on the right. Please review new version for bugs or general optimization, and add review comments where necessary.</li>
+        <li><strong>Review comments.</strong></li>
         <ul>
             <li>To <strong>add</strong> a review comment, click on the corresponding line number.</li>
             <li>To <strong>modify/delete</strong> a review comment, click on the corresponding line number again and modify/delete the comment's text.</li>
@@ -156,6 +156,15 @@
         <li>Once you confirm to conclude the review, it will not be possible to add, delete, or modify the remarks anymore.</li>
         <li>At the end of each page you will be asked to choose how much you were interrupted and how mentally taxing was the task.</li>
     </ul>
+    <video id="tutvid"
+       controls
+       preload="metadata"
+       playsinline
+       style="max-width:100%;height:auto;">
+      <source src="{{ url_for('static', filename='videos/CRtutorial.mp4') }}" type="video/mp4">
+      <source src="{{ url_for('static', filename='videos/CRtutorial.webm') }}" type="video/webm">
+      Sorry, your browser doesn’t support embedded videos.
+    </video>
     <form action="{{ url_for('run_experiment') }}" method="post">
   <button type="submit" id="submitter" class="button blue">I have read the text above and I want to start the review ►</button>
   </form>
