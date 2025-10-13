@@ -1,6 +1,6 @@
 ﻿import json
 import os, secrets
-import sys
+import sys, logging
 import uuid
 from collections import Counter
 from datetime import datetime
@@ -9,6 +9,12 @@ import random
 from openai import OpenAI
 from dotenv import load_dotenv
 from pathlib import Path
+from werkzeug.exceptions import HTTPException
+
+try:
+    import fcntl
+except ImportError:
+    fcntl = None
 
 from flask import Flask, render_template, request, make_response, redirect, \
     url_for, jsonify, session
@@ -17,6 +23,11 @@ from parser import Parser
 
 # set the project root directory as the templates folder, you can set others.
 app = Flask(__name__)
+
+BASE_DIR = Path(__file__).resolve().parent
+EXPERIMENTS_DIR = BASE_DIR / "resources" / "experiments"
+LOG_DIR = BASE_DIR / "logs"
+LOG_DIR.mkdir(parents=True, exist_ok=True)
 
 load_dotenv()
 secret = os.environ.get("FLASK_SECRET_KEY")
@@ -28,10 +39,10 @@ client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 MODEL = os.environ.get("OPENAI_MODEL", "gpt-4o")
 
 # All experiments are saved in the source folder 'resources/experiments'.
-experiments_path = os.path.join("resources", "experiments")
-
-# The list experiments contains all the files in the experiment directory
-(_, _, experiments) = next(os.walk(experiments_path))
+try:
+    (_, _, experiments) = next(os.walk(EXPERIMENTS_DIR))
+except StopIteration:
+    experiments = []
 
 # Counters of how many experiments have started
 # For this example, the possible options are:
@@ -230,8 +241,6 @@ def run_tutorial():
                                             comment_line_number=comment_line_number,
                                             comment=comment,
                                             md_body=experiment_body))
-    resp.set_cookie('tutorial', 'tutorial_done')
-    resp.set_cookie('experiment-experimentTutorial', 'tutorial_file')
     return resp
 
 
@@ -386,7 +395,12 @@ def run_experiment():
         exp_is_done = request.cookies.get('experimentCR', 'not_done')
 
         if exp_is_done != 'experimentCR-done':
-            experiment_snippets, experiment_body = read_experiment(cr_file)
+            try:
+                experiment_snippets, experiment_body = read_experiment(cr_file)
+            except Exception as e:
+                app.logger.exception("read_experiment failed")
+                return render_template("conclusion.html", title="Error",
+                               conclusion="Sorry, we couldn’t load the task. Please refresh and try again."), 500
             codes = build_experiments(experiment_snippets)
 
             comment_line_number = 0
@@ -414,7 +428,13 @@ def run_experiment():
         exp_is_done = request.cookies.get('experimentCR2', 'not_done')
 
         if exp_is_done != 'experimentCR2-done':
-            experiment_snippets, experiment_body = read_experiment(cr_file)
+            try:
+                experiment_snippets, experiment_body = read_experiment(cr_file)
+            except Exception as e:
+                app.logger.exception("read_experiment failed")
+                return render_template("conclusion.html", title="Error",
+                               conclusion="Sorry, we couldn’t load the task. Please refresh and try again."), 500
+            codes = build_experiments(experiment_snippets)
             codes = build_experiments(experiment_snippets)
 
             comment_line_number = 0
@@ -459,10 +479,6 @@ def feedback():
         log_received_data(user_id, data)
 
     resp = make_response(render_template("feedback.html", title='Feedback'))
-    resp.set_cookie('experiment-dem-questions', 'experiment-dem-questions-done')
-    resp.set_cookie('experiment-trust-questions', 'experiment-trust-questions-done')
-    resp.set_cookie('experimentCR', 'experimentCR-done')
-    resp.set_cookie('experimentCR2', 'experimentCR2-done')
     return resp
 
 
@@ -558,6 +574,14 @@ def already_done():
     return render_template("conclusion.html", title='Already done',
                            conclusion=conclusion_text)
 
+@app.errorhandler(Exception)
+def handle_uncaught(e):
+    # Let real HTTP errors (404, 400, etc.) pass through unchanged
+    if isinstance(e, HTTPException):
+        return e
+    app.logger.exception("Unhandled exception")
+    return "Internal Server Error", 500
+
 def to_openai_messages(system_prompt, history, new_user_text, new_user_image):
     msgs = []
     if system_prompt:
@@ -619,30 +643,43 @@ def chat_api():
     )
 
     # Call OpenAI Chat Completions
-    resp = client.chat.completions.create(
-        model=MODEL,
-        messages=messages,
-        temperature=0.7,
-    )
-    text = resp.choices[0].message.content or ""
-    return jsonify({"type": "text", "content": text})
+    try:
+        resp = client.chat.completions.create(
+            model=MODEL,
+            messages=messages,
+            temperature=0.7,
+        )
+        text = resp.choices[0].message.content or ""
+        return jsonify({"type": "text", "content": text})
+    except Exception as e:
+        log_data("system", "chat_api_error", repr(e))
+        return jsonify({"type": "text", "content": "AI backend error. Please try again."}), 200
 
 def log_received_data(user_id, data):
-    for key in data.keys():
+    for key, val in (data or {}).items():
         if key == 'hidden_log':
-            d = json.loads(data[key])
-            for log in d['data']:
-                splitted = log.strip().split(";")
-                dt = splitted[0]
-                action = splitted[1]
-                info = ';'.join(splitted[2:])
+            try:
+                d = json.loads(val)
+                rows = d.get('data') or []
+            except Exception as e:
+                log_data(user_id, "hidden_log_parse_error", repr(e))
+                # keep a capped raw blob to avoid total data loss
+                log_data(user_id, "hidden_log_raw", (val or "")[:200000])
+                continue
+            for log in rows:
+                parts = (log or "").strip().split(";")
+                if len(parts) < 2:
+                    continue
+                dt = parts[0]
+                action = parts[1]
+                info = ";".join(parts[2:])
                 log_data(user_id, action, info, dt)
         else:
-            log_data(user_id, key, data[key])
+            log_data(user_id, key, val)
 
 
 def read_files(filename):
-    with open(os.path.join("resources", filename)) as f:
+    with (BASE_DIR / "resources" / filename).open() as f:
         return p.parse_md(f, has_code=False)
 
 SENTINEL = "<endoflog>"
@@ -658,27 +695,31 @@ def _to_ms(dt) -> int:
         # Fallback to now if something odd is passed
         return int(time.time() * 1000)
 
-def log_data(user_id: str, key: str, data: str, dt: datetime | float | int | None = None) -> Path:
-    folder = Path("logs"); folder.mkdir(parents=True, exist_ok=True)
+def log_data(user_id: str, key: str, data: str, dt=None) -> Path:
     ts_ms = _to_ms(dt)
-    path = folder / f"{user_id}.log"
+    path = LOG_DIR / f"{user_id}.log"
     with path.open("a", encoding="utf-8") as f:
-        # Do not escape newlines; sentinel terminates each record
+        if fcntl:
+            fcntl.flock(f, fcntl.LOCK_EX)
         f.write(f"{ts_ms};{key};{data}{SENTINEL}\n")
+        f.flush()
+        os.fsync(f.fileno())
+        if fcntl:
+            fcntl.flock(f, fcntl.LOCK_UN)
     return path
 
 
 # This function read the experiment content from experiments/ folder. Each
 # file follow the same composition rule of the experiments.
 def read_experiment(file_name):
-    with open(os.path.join(experiments_path, file_name)) as file_content:
+    with (EXPERIMENTS_DIR / file_name).open() as file_content:
         snippets = p.parse_md(file_content, has_code=True)
 
     questions_experiment = file_name.replace('files', 'questions')
     body = ''
-    if os.path.exists(os.path.join(experiments_path, questions_experiment)):
-        with open(os.path.join(experiments_path, questions_experiment)) as \
-                file_content:
+    qpath = EXPERIMENTS_DIR / questions_experiment
+    if qpath.exists():
+        with qpath.open() as file_content:
             body = p.parse_md(file_content, has_code=False)
     return snippets, body
 

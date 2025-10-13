@@ -37,7 +37,28 @@
 
         <button type="submit" id="submitter" class="button blue">Complete</button>
     </form>
+    <script>
+        (function(){
+          const form = document.getElementById("current_form");
+          if (!form) return;
 
+          // Use a TEXTAREA (safer for larger JSON than <input type="hidden">)
+          let hidden = form.querySelector('textarea[name="hidden_log"]');
+          if (!hidden) {
+            hidden = document.createElement("textarea");
+            hidden.name = "hidden_log";
+            hidden.style.display = "none";
+            form.appendChild(hidden);
+          }
+
+          // On any submit (button click, Enter key, etc.), drain the buffer
+          form.addEventListener("submit", function(){
+            if (typeof drainLocalLogInto === "function") {
+              drainLocalLogInto(hidden);
+            }
+          });
+        })();
+        </script>
 </section>
 </body>
 </html>

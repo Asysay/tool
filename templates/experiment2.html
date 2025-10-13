@@ -68,6 +68,7 @@
     <script type="text/javascript">
         $(document).ready(function () {
             logData("pageLoaded2", "pageLoaded2");
+            initCommentStore();
 
             //size of screen
             logData("screen height", window.screen.height);
@@ -124,6 +125,18 @@
             computeLinesInHunk("none", 0);
             logData('visibleHunks', determineVisibleHunks());
 	        logData('visibleLines', determineVisibleLines());
+
+            window.__diffInstances = window.__diffInstances || [];
+            window.__diffInstances.length = 0;           // reset in case of reload
+            editors.forEach(ed => window.__diffInstances.push(ed));
+
+            // Wait one frame so CodeMirror has laid out, then restore widgets
+            requestAnimationFrame(() => {
+              initCommentStore();
+              if (typeof restoreAllComments === "function") {
+                restoreAllComments();
+              }
+            });
             
 
             // Window scroller
@@ -370,6 +383,7 @@ body {
     #mergely-splash { display: none !important;}
 </style>
 <body>
+<div id="exp-meta" data-exp="{{ session.get('cr_file2') }}"></div>
     <div>
         <p><h1>Review Task (Bank)</h1></p>
     </div>
@@ -419,7 +433,7 @@ body {
         <div style="clear: both; display: none" id="final-questions">
                 <!-- "diff_data" is a fieldset with a textarea inside containing JSON formatted log data. Doing this
                 we do not need to manipulate data in a submission function due Flask post request mechanics-->
-            <form action="{{ url_for('advance') }}" method="post">
+            <form action="{{ url_for('advance') }}" method="post" id="current_form">
                 <fieldset id="diff_data" hidden style="display: none">
                     <textarea name="hidden_log" id="hidden_log"></textarea>
                 </fieldset>
@@ -461,6 +475,28 @@ body {
   <button type="submit" id="submitter" class="button blue">Next ►</button>
 
             </form>
+    <script>
+    (function(){
+      const form = document.getElementById("current_form");
+      if (!form) return;
+
+      // Use a TEXTAREA (safer for larger JSON than <input type="hidden">)
+      let hidden = form.querySelector('textarea[name="hidden_log"]');
+      if (!hidden) {
+        hidden = document.createElement("textarea");
+        hidden.name = "hidden_log";
+        hidden.style.display = "none";
+        form.appendChild(hidden);
+      }
+
+      // On any submit (button click, Enter key, etc.), drain the buffer
+      form.addEventListener("submit", function(){
+        if (typeof drainLocalLogInto === "function") {
+          drainLocalLogInto(hidden);
+        }
+      });
+    })();
+    </script>
         </div>
 
     <div id="id01" class="modal">
@@ -530,7 +566,7 @@ body {
 <aside id="chat-sidebar">
   <header id="chat-title">GPT-4o</header>
 
-  <div id="chat-messages" aria-live="polite" data-exp="{{ session.get('cr_file2') or session.get('cr_file1') }}"></div>
+  <div id="chat-messages" aria-live="polite" data-exp="{{ session.get('cr_file2') }}"></div>
 
   <div id="chat-input-area">
     <button id="send-image" class="square-btn" title="Send image" aria-label="Send image">+</button>
@@ -1111,7 +1147,7 @@ async function queryAI({ text=null, image=null }){
   }catch(err){
     hideTyping();
     addBubble("bot2", "⚠️ Error contacting server.");
-    chatLog.push({ time: Date.now(), role:"bot2", content: msg, isImage:false });
+    chatLog.push({ time: Date.now(), role:"bot2", content: String(err), isImage:false });
     logLine("ai_text2", String(err));
     console.error(err);
   }finally{

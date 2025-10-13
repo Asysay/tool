@@ -1,8 +1,47 @@
 var log_records = [];  // Array of log records returned to Flask
 var log_remarks = [];  // Array of remarks to be shown again in the second review
 
+const LS_KEY = "exp_hidden_log_buffer";
+
 var reviewRemarksRight = {};
 var reviewRemarksLeft = {};
+
+function getCookie(name){
+  const m = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/[-./\\^$*+?()[\]{}|]/g, '\\$&') + '=([^;]*)'));
+  return m ? decodeURIComponent(m[1]) : '';
+}
+
+let COMMENT_STORE_KEY;          // set later, after DOM exists
+let commentIndex = {};          // loaded after key init
+
+function initCommentStore(){
+  if (COMMENT_STORE_KEY) return;  // already inited
+
+  const uid = getCookie("experiment-userid") ||
+              localStorage.getItem("chatSessionId_1") ||
+              "anon";
+
+  const meta = document.getElementById("exp-meta");
+  const expKey = (meta?.dataset?.exp ||      // <- prefer data-exp from DOM
+                  meta?.dataset?.cr  ||      // optional compat
+                  location.pathname)          // last-resort fallback
+                  .toString()
+                  .replace(/[^\w.-]+/g, "_");
+
+  COMMENT_STORE_KEY = `cr_comments:${uid}:${expKey}`;
+  try {
+    commentIndex = JSON.parse(localStorage.getItem(COMMENT_STORE_KEY) || "{}");
+  } catch {
+    commentIndex = {};
+  }
+}
+
+function keyFor(hunkId, side, realLine){ return `${hunkId}|${side}|${realLine}`; }
+
+function persistComments(){
+  if (!COMMENT_STORE_KEY) initCommentStore();
+  try { localStorage.setItem(COMMENT_STORE_KEY, JSON.stringify(commentIndex)); } catch {}
+}
 
 $(window).on("load", function(){
 
@@ -62,15 +101,75 @@ function initMergely(elementId, height, contextHeight, width, lineNumberLeft, co
 			el.mergely('cm', 'lhs').ps_prefixActive = false;
 			// el.mergely('update', function() {ensureViewCorrectSized(elementId)});
 			hunks.push(el);
+			window.__diffInstances = window.__diffInstances || [];
+			const lhs = el.mergely('cm', 'lhs');
+			const rhs = el.mergely('cm', 'rhs');
+			window.__diffInstances.push(lhs, rhs);
+			applyCommentsToInstance(lhs);
+			applyCommentsToInstance(rhs);
 		}
 	});
+
 	//computeHunkLines();
 }
 
 
 function logData(action, data){
-    // console.log(`${new Date().getTime()};${action};${data}\n`)
-    log_records.push(`${new Date().getTime()};${action};${data}\n`);
+  const line = `${Date.now()};${action};${data}`;
+  // your existing in-memory buffer:
+  log_records.push(line + "\n");
+
+  // NEW: append to localStorage buffer
+  try {
+    const buf = JSON.parse(localStorage.getItem(LS_KEY) || "[]");
+    buf.push(line);
+    localStorage.setItem(LS_KEY, JSON.stringify(buf));
+  } catch(_) {}
+}
+
+function drainLocalLogInto(hiddenTextareaEl){
+  try {
+    const buf = JSON.parse(localStorage.getItem(LS_KEY) || "[]");
+    if (buf.length) {
+      // Server expects {"data": [...lines...]}
+      hiddenTextareaEl.value = JSON.stringify({ data: buf });
+      localStorage.removeItem(LS_KEY); // clear once queued for send
+    } else {
+      hiddenTextareaEl.value = "";     // nothing to send
+    }
+  } catch (_) {
+    hiddenTextareaEl.value = "";       // on parse error, send nothing
+  }
+}
+
+// --- Rehydration ---
+function applyCommentsToInstance(inst){
+  const side = inst.hunkSide;
+  const firstLine = inst.options.firstLineNumber;
+
+  for (const k in commentIndex) {
+    const c = commentIndex[k];
+    if (c.side !== side || c.hunkId !== inst.hunkId) continue;
+
+    const realLine = c.realLine;
+    const localLine = realLine - firstLine;
+    if (localLine < 0) continue;
+
+    const widget = inst.addLineWidget(localLine, makeMarker(c.msg), { coverGutter:true, noHScroll:true });
+
+    if (side == 1) {
+      if (!reviewRemarksRight[inst.hunkId]) reviewRemarksRight[inst.hunkId] = {};
+      reviewRemarksRight[inst.hunkId][realLine] = widget;
+    } else {
+      if (!reviewRemarksLeft[inst.hunkId]) reviewRemarksLeft[inst.hunkId] = {};
+      reviewRemarksLeft[inst.hunkId][realLine] = widget;
+    }
+  }
+}
+
+function restoreAllComments(){
+  const arr = (window.__diffInstances || []);
+  for (const inst of arr) applyCommentsToInstance(inst);
 }
 
 
@@ -187,6 +286,13 @@ function recordRemark() {
 				reviewRemarksRight[instance.hunkId][realLineNumber].clear()
 				// instance.setGutterMarker(lineNumber, "remarks", null);
 				delete reviewRemarksRight[instance.hunkId][realLineNumber];
+				{
+					const side = instance.hunkSide;
+					const hunkId = instance.hunkId;
+					const k = keyFor(hunkId, side, realLineNumber);
+					delete commentIndex[k];
+					persistComments();
+				}
 				if(isRemarkPresent(log_remarks, lineNumber, instance.hunkId)) {
 					log_remarks = removeRemark(log_remarks, instance.hunkSide, lineNumber, instance.hunkId);
 				}
@@ -198,6 +304,13 @@ function recordRemark() {
 				// reviewRemarksRight[instance.hunkId][realLineNumber] = msg;
 				reviewRemarksRight[instance.hunkId][realLineNumber].node.lastChild.textContent = msg
 				reviewRemarksRight[instance.hunkId][realLineNumber].changed()
+				{
+				const side = instance.hunkSide;
+				const hunkId = instance.hunkId;
+				const k = keyFor(hunkId, side, realLineNumber);
+				commentIndex[k] = { hunkId, side, realLine: realLineNumber, msg };
+				persistComments();
+				}
 				if(isRemarkPresent(log_remarks, lineNumber, instance.hunkId)) {
 					log_remarks = updateRemark(log_remarks, instance.hunkSide, lineNumber, instance.hunkId, msg);
 				}
@@ -221,6 +334,13 @@ function recordRemark() {
 					noHScroll: true
 				});
 				reviewRemarksRight[instance.hunkId][realLineNumber] = line_widget;
+				{
+				const side = instance.hunkSide;
+				const hunkId = instance.hunkId;
+				const k = keyFor(hunkId, side, realLineNumber);
+				commentIndex[k] = { hunkId, side, realLine: realLineNumber, msg };
+				persistComments();
+				}
 				log_remarks.push(new Remark(lineNumber, msg, instance.hunkId, instance.hunkSide));
 				// addComment(lineNumber, msg, instance.hunkId, instance.hunkSide)
 			}
@@ -244,9 +364,17 @@ function recordRemark() {
 			if (msg == "") {
 				// DELETE COMMENT
 				logData("deletedComment", `${instance.hunkId}${instance.hunkSide}-${realLineNumber}`);
-				reviewRemarksLeft[instance.hunkId][realLineNumber].clear()
+				reviewRemarksLeft[instance.hunkId][realLineNumber].clear();
+				updateCommentForLineRecording(instance.hunkId, lineNumber+1, "del");
 				// instance.setGutterMarker(lineNumber, "remarks", null);
 				delete reviewRemarksLeft[instance.hunkId][realLineNumber];
+				{
+					const side = instance.hunkSide;
+					const hunkId = instance.hunkId;
+					const k = keyFor(hunkId, side, realLineNumber);
+					delete commentIndex[k];
+					persistComments();
+				}
 				if(isRemarkPresent(log_remarks, lineNumber, instance.hunkId)) {
 					log_remarks = removeRemark(log_remarks, instance.hunkSide, lineNumber, instance.hunkId);
 				}
@@ -256,8 +384,15 @@ function recordRemark() {
 					`${instance.hunkId}${instance.hunkSide}-${realLineNumber}-${msg}`)
 				// info.gutterMarkers.remarks.title = msg;
 				// reviewRemarksLeft[instance.hunkId][realLineNumber] = msg;
-				reviewRemarksLeft[instance.hunkId][realLineNumber].node.lastChild.textContent = msg
-				reviewRemarksLeft[instance.hunkId][realLineNumber].changed()
+				reviewRemarksLeft[instance.hunkId][realLineNumber].node.lastChild.textContent = msg;
+				reviewRemarksLeft[instance.hunkId][realLineNumber].changed();
+				{
+				const side = instance.hunkSide;
+				const hunkId = instance.hunkId;
+				const k = keyFor(hunkId, side, realLineNumber);
+				commentIndex[k] = { hunkId, side, realLine: realLineNumber, msg };
+				persistComments();
+				}
 				if(isRemarkPresent(log_remarks, lineNumber, instance.hunkId)) {
 					log_remarks = updateRemark(log_remarks, instance.hunkSide, lineNumber, instance.hunkId, msg);
 				}
@@ -274,7 +409,15 @@ function recordRemark() {
 				// instance.setGutterMarker(lineNumber, "remarks", makeMarker(msg));
 
 				var line_widget = instance.addLineWidget(lineNumber, makeMarker(msg), {coverGutter: true, noHScroll: true});
+				updateCommentForLineRecording(instance.hunkId, lineNumber+1, "add");
 				reviewRemarksLeft[instance.hunkId][realLineNumber] = line_widget;
+				{
+				const side = instance.hunkSide;
+				const hunkId = instance.hunkId;
+				const k = keyFor(hunkId, side, realLineNumber);
+				commentIndex[k] = { hunkId, side, realLine: realLineNumber, msg };
+				persistComments();
+				}
 				log_remarks.push(new Remark(lineNumber, msg, instance.hunkId, instance.hunkSide));
 				// addComment(lineNumber, msg, instance.hunkId, instance.hunkSide)
 			}
