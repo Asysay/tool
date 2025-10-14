@@ -72,18 +72,18 @@
             initCommentStore();
 
             //size of screen
-            logData("screen height", window.screen.height);
-            logData("screen width", window.screen.width);
+            //logData("screen height", window.screen.height);
+            //logData("screen width", window.screen.width);
 
             // Size of browser viewport.
-            logData("window height", $(window).height());
-            logData("window width", $(window).width());
+            //logData("window height", $(window).height());
+            //logData("window width", $(window).width());
 
             // Size of HTML document (same as pageHeight/pageWidth in screenshot).
-            logData("html document height", $(document).height());
-            logData("html document width", $(document).width());
+            //logData("html document height", $(document).height());
+            //logData("html document width", $(document).width());
 
-            logData("read_instructions", "read_instructions");
+            //logData("read_instructions", "read_instructions");
             var width = $(window).width() - 50;
             {% for code in codes %}
                 initMergely('#compare{{code["id"]}}',
@@ -124,8 +124,8 @@
             }
             setEditors(editors);
             computeLinesInHunk("none", 0);
-            logData('visibleHunks', determineVisibleHunks());
-	        logData('visibleLines', determineVisibleLines());
+            //logData('visibleHunks', determineVisibleHunks());
+	        //logData('visibleLines', determineVisibleLines());
 
             window.__diffInstances = window.__diffInstances || [];
             window.__diffInstances.length = 0;           // reset in case of reload

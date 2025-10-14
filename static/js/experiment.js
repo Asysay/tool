@@ -513,9 +513,9 @@ function scrollHandler() {
 	if(scrollRecordingEnabled) {
 		var curTime = Date.now();
 		if (curTime - lastScrollTime > 50) {
-			logData('scroll', window.pageXOffset + ';' + window.pageYOffset);
-			logData('visibleHunks', determineVisibleHunks());
-			logData('visibleLines', determineVisibleLines());
+			//logData('scroll', window.pageXOffset + ';' + window.pageYOffset);
+			//logData('visibleHunks', determineVisibleHunks());
+			//logData('visibleLines', determineVisibleLines());
 			lastScrollTime = curTime;
 		}
 	}
@@ -716,7 +716,7 @@ function isLineOnScreen(line) {
 };
 
 function recomputeLinesScroll(hunkNumber){
-	logData("internal scroll", "hunk" + hunkNumber);
+	//logData("internal scroll", "hunk" + hunkNumber);
 	if(typeof linesMap !== "undefined") {
 		linesMap.clear();
 		computeLinesInHunk("none", 0);
@@ -733,8 +733,8 @@ function updateCommentForLineRecording(hunkId, lineNumber, action){
 		removeCommentFromMap(hunkId, lineNumber);
 	}
 	computeLinesInHunk(action, parseInt(hunkId));
-	logData('visibleHunks', determineVisibleHunks());
-	logData('visibleLines', determineVisibleLines());
+	//logData('visibleHunks', determineVisibleHunks());
+	//logData('visibleLines', determineVisibleLines());
 }
 
 function addCommentToMap(hunkId, commentLine) {
